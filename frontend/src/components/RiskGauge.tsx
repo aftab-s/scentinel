@@ -14,11 +14,11 @@ export default function RiskGauge({ score }: Props) {
   const arcLength = circumference * 0.75;
   const offset = arcLength - (score / 100) * arcLength;
 
-  // Color interpolation: green → gold → red
+  // Color interpolation
   const getColor = (s: number) => {
-    if (s >= 80) return '#22c55e';
-    if (s >= 50) return '#D4AF37';
-    return '#ef4444';
+    if (s >= 80) return '#4A3B32'; 
+    if (s >= 50) return '#D2A795'; 
+    return '#991b1b'; 
   };
 
   const color = getColor(score);
@@ -41,7 +41,7 @@ export default function RiskGauge({ score }: Props) {
           cy="104"
           r={normalizedRadius}
           fill="none"
-          stroke="rgba(255,255,255,0.06)"
+          stroke="rgba(232, 207, 193, 0.4)"
           strokeWidth={stroke}
           strokeDasharray={`${arcLength} ${circumference}`}
           strokeLinecap="round"
@@ -60,7 +60,7 @@ export default function RiskGauge({ score }: Props) {
           initial={{ strokeDashoffset: arcLength }}
           animate={{ strokeDashoffset: offset }}
           transition={{ duration: 1.2, ease: 'easeOut' }}
-          style={{ filter: `drop-shadow(0 0 8px ${color}88)` }}
+          style={{ filter: `drop-shadow(0 0 6px ${color}40)` }}
         />
 
         {/* Tick marks */}
@@ -77,7 +77,7 @@ export default function RiskGauge({ score }: Props) {
               y1={y1}
               x2={x2}
               y2={y2}
-              stroke="rgba(255,255,255,0.2)"
+              stroke="rgba(74, 59, 50, 0.2)"
               strokeWidth="1.5"
               strokeLinecap="round"
             />
@@ -88,7 +88,7 @@ export default function RiskGauge({ score }: Props) {
       {/* Center content */}
       <div className="relative z-10 flex flex-col items-center">
         <motion.span
-          className="font-mono font-bold text-4xl"
+          className="sans-serif font-bold text-4xl"
           style={{ color }}
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -97,7 +97,7 @@ export default function RiskGauge({ score }: Props) {
           {score}
           <span className="text-lg">%</span>
         </motion.span>
-        <span className="text-[10px] text-[#94A3B8] uppercase tracking-widest mt-1">
+        <span className="text-[10px] text-[#4A3B32] uppercase tracking-widest mt-1 font-semibold">
           Risk Score
         </span>
       </div>

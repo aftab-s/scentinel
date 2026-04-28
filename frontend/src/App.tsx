@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { UserProfile } from './types';
 import Navbar from './components/Navbar';
 import HeroSection from './components/HeroSection';
@@ -10,51 +10,56 @@ const EMPTY_PROFILE: UserProfile = {
   hated: [],
 };
 
+const getInitialProfile = (): UserProfile => {
+  const saved = localStorage.getItem('scentinel_profile');
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch (e) {
+      return EMPTY_PROFILE;
+    }
+  }
+  return EMPTY_PROFILE;
+};
+
 export default function App() {
-  const [profile, setProfile] = useState<UserProfile>(EMPTY_PROFILE);
+  const [profile, setProfile] = useState<UserProfile>(getInitialProfile);
   const [currency, setCurrency] = useState('USD');
 
-  return (
-    <div className="min-h-screen bg-[#0A0A0A] relative">
-      {/* Global background gradient */}
-      <div
-        className="fixed inset-0 pointer-events-none"
-        style={{
-          background:
-            'radial-gradient(ellipse 80% 50% at 20% 0%, rgba(212,175,55,0.05) 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 80% 100%, rgba(124,58,237,0.06) 0%, transparent 60%)',
-        }}
-      />
+  useEffect(() => {
+    localStorage.setItem('scentinel_profile', JSON.stringify(profile));
+  }, [profile]);
 
+  return (
+    <div className="min-h-screen bg-[#FDFBF7] text-[#2C241B] relative">
       <Navbar currency={currency} onCurrencyChange={setCurrency} />
 
-      <main className="relative z-10 pt-20">
+      <main className="relative z-10 pt-24">
         <HeroSection />
 
-        {/* Divider */}
-        <div className="max-w-7xl mx-auto px-4 md:px-8 mb-12">
-          <div className="h-px bg-gradient-to-r from-transparent via-[#D4AF37]/20 to-transparent" />
+        <div className="max-w-7xl mx-auto px-4 md:px-8 my-16">
+          <div className="h-px bg-[#E8CFC1]/50" />
         </div>
 
         <FragranceVault profile={profile} onUpdate={setProfile} currency={currency} />
 
-        {/* Divider */}
-        <div className="max-w-7xl mx-auto px-4 md:px-8 mb-12">
-          <div className="h-px bg-gradient-to-r from-transparent via-[#7C3AED]/20 to-transparent" />
+        <div className="max-w-7xl mx-auto px-4 md:px-8 my-16">
+          <div className="h-px bg-[#E8CFC1]/50" />
         </div>
 
         <RiskEngine profile={profile} currency={currency} />
 
-        {/* Footer */}
-        <footer className="text-center pb-12 px-4 mt-16">
+        <footer className="text-center pb-12 px-4 mt-24">
           <div className="max-w-md mx-auto">
-            <p className="text-[10px] text-[#94A3B8]/40 font-mono uppercase tracking-[0.2em] leading-relaxed">
-              Scent-inel · Blind Buy Intelligence<br />
-              Built for Fragrance Obsessives
+            <h2 className="serif text-2xl font-bold mb-4">Ikira</h2>
+            <p className="text-sm text-[#4A3B32] sans-serif tracking-wide leading-relaxed">
+              Curated Fragrance Intelligence<br />
+              Elevate Your Signature Scent
             </p>
-            <div className="mt-4 flex items-center justify-center gap-2">
-              <div className="w-1 h-1 rounded-full bg-[#D4AF37]/30" />
-              <div className="w-1 h-1 rounded-full bg-[#7C3AED]/30" />
-              <div className="w-1 h-1 rounded-full bg-[#D4AF37]/30" />
+            <div className="mt-6 flex items-center justify-center gap-3">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#E8CFC1]" />
+              <div className="w-1.5 h-1.5 rounded-full bg-[#D2A795]" />
+              <div className="w-1.5 h-1.5 rounded-full bg-[#E8CFC1]" />
             </div>
           </div>
         </footer>

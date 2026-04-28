@@ -22,7 +22,7 @@ export interface RiskResult {
   score: number;
   verdict: string;
   breakdown: AccordScore[];
-  clone?: CloneSuggestion;
+  clones: CloneSuggestion[];  // Changed from single clone to array
   ai_insight?: string;
 }
 

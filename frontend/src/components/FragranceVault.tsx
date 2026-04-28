@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Heart, Frown, FlaskConical } from 'lucide-react';
+import { Plus, Heart, Frown } from 'lucide-react';
 import type { Fragrance, UserProfile } from '../types';
 import FragranceCard from './FragranceCard';
 import AddFragranceModal from './AddFragranceModal';
@@ -31,40 +31,39 @@ export default function FragranceVault({ profile, onUpdate, currency }: Props) {
   };
 
   return (
-    <section className="px-4 md:px-8 max-w-6xl mx-auto mb-12">
+    <section id="vault" className="px-4 md:px-8 max-w-6xl mx-auto mb-12">
       {/* Section header */}
       <motion.div
-        className="flex items-center gap-3 mb-6"
+        className="flex items-center gap-3 mb-8"
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <FlaskConical size={18} className="text-[#D4AF37]" />
-        <h2 className="serif text-2xl font-semibold text-white">
+        <h2 className="serif text-3xl md:text-4xl font-bold text-[#2C241B]">
           The Fragrance Vault
         </h2>
-        <div className="flex-1 h-px bg-gradient-to-r from-[#D4AF37]/30 to-transparent ml-2" />
+        <div className="flex-1 h-px bg-[#E8CFC1]/50 ml-4" />
       </motion.div>
 
       {/* Loved shelf */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-3">
+      <div className="mb-10">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Heart size={13} className="text-[#D4AF37]" fill="#D4AF37" />
-            <span className="text-xs text-[#D4AF37] uppercase tracking-widest font-mono">
-              Loved ({profile.loved.length})
+            <Heart size={14} className="text-[#D2A795]" fill="#D2A795" />
+            <span className="text-xs text-[#4A3B32] uppercase tracking-widest font-semibold">
+              Loved Collection ({profile.loved.length})
             </span>
           </div>
           <button
             onClick={() => setModal('love')}
-            className="flex items-center gap-1.5 text-xs text-[#D4AF37]/70 hover:text-[#D4AF37] transition-colors font-mono border border-[#D4AF37]/20 hover:border-[#D4AF37]/50 px-3 py-1.5 rounded-full"
+            className="flex items-center gap-1.5 text-xs text-[#4A3B32] hover:text-[#2C241B] transition-colors font-medium bg-[#E8CFC1]/20 hover:bg-[#E8CFC1]/40 px-4 py-2 rounded-full"
           >
-            <Plus size={11} />
-            Add
+            <Plus size={12} />
+            Add Fragrance
           </button>
         </div>
 
-        <div className="shelf-scroll flex gap-3 pb-3">
+        <div className="shelf-scroll flex gap-4 pb-4">
           {profile.loved.length === 0 ? (
             <EmptyShelf
               label="Add fragrances you love"
@@ -86,26 +85,26 @@ export default function FragranceVault({ profile, onUpdate, currency }: Props) {
 
       {/* Hated shelf */}
       <div>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Frown size={13} className="text-red-400" />
-            <span className="text-xs text-red-400 uppercase tracking-widest font-mono">
-              Hated ({profile.hated.length})
+            <Frown size={14} className="text-red-800/60" />
+            <span className="text-xs text-[#4A3B32] uppercase tracking-widest font-semibold">
+              Avoided Collection ({profile.hated.length})
             </span>
           </div>
           <button
             onClick={() => setModal('hate')}
-            className="flex items-center gap-1.5 text-xs text-red-400/70 hover:text-red-400 transition-colors font-mono border border-red-500/20 hover:border-red-500/50 px-3 py-1.5 rounded-full"
+            className="flex items-center gap-1.5 text-xs text-[#4A3B32] hover:text-[#2C241B] transition-colors font-medium bg-[#E8CFC1]/20 hover:bg-[#E8CFC1]/40 px-4 py-2 rounded-full"
           >
-            <Plus size={11} />
-            Add
+            <Plus size={12} />
+            Add Fragrance
           </button>
         </div>
 
-        <div className="shelf-scroll flex gap-3 pb-3">
+        <div className="shelf-scroll flex gap-4 pb-4">
           {profile.hated.length === 0 ? (
             <EmptyShelf
-              label="Add fragrances you hate"
+              label="Add fragrances you avoid"
               onClick={() => setModal('hate')}
               color="red"
             />
@@ -153,15 +152,15 @@ function EmptyShelf({
   return (
     <button
       onClick={onClick}
-      className="flex-shrink-0 w-44 h-28 glass rounded-2xl flex flex-col items-center justify-center gap-2 border-dashed hover:bg-white/5 transition-colors"
+      className="flex-shrink-0 w-52 h-32 bg-[#FDFBF7] border border-dashed rounded-2xl flex flex-col items-center justify-center gap-3 transition-colors hover:bg-[#F4EFE6]"
       style={{
-        borderColor: color === 'gold' ? 'rgba(212,175,55,0.2)' : 'rgba(239,68,68,0.2)',
+        borderColor: color === 'gold' ? 'rgba(210, 167, 149, 0.4)' : 'rgba(239, 68, 68, 0.2)',
       }}
     >
-      <Plus size={16} style={{ color: color === 'gold' ? '#D4AF37' : '#f87171' }} />
+      <Plus size={18} style={{ color: color === 'gold' ? '#D2A795' : '#991b1b' }} />
       <span
-        className="text-xs font-mono text-center px-2"
-        style={{ color: color === 'gold' ? '#D4AF37' : '#f87171', opacity: 0.6 }}
+        className="text-xs sans-serif font-medium text-center px-4"
+        style={{ color: color === 'gold' ? '#4A3B32' : '#991b1b', opacity: 0.8 }}
       >
         {label}
       </span>

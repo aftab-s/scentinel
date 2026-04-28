@@ -12,6 +12,7 @@ export interface FragranceSearchResult {
     base: string[];
   };
   image_url?: string;
+  source?: string;  // "groq", "web_search", "fallback"
 }
 
 export interface Currency {

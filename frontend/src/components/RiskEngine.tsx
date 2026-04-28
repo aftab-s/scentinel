@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Zap, AlertTriangle, CheckCircle, XCircle, Lightbulb, Loader2, Sparkles } from 'lucide-react';
+import { Search, Info, CheckCircle, AlertTriangle, XCircle, Loader2, Sparkles, Droplets } from 'lucide-react';
 import type { Fragrance, UserProfile, RiskResult } from '../types';
 import { calculateRisk, searchFragrance } from '../api';
 import RiskGauge from './RiskGauge';
@@ -71,229 +71,195 @@ export default function RiskEngine({ profile, currency }: Props) {
   };
 
   const getVerdictIcon = (score: number) => {
-    if (score >= 80) return <CheckCircle size={20} className="text-green-400" />;
-    if (score >= 50) return <AlertTriangle size={20} className="text-[#D4AF37]" />;
-    return <XCircle size={20} className="text-red-400" />;
-  };
-
-  const getVerdictColor = (score: number) => {
-    if (score >= 80) return '#22c55e';
-    if (score >= 50) return '#D4AF37';
-    return '#ef4444';
+    if (score >= 80) return <CheckCircle size={20} className="text-[#4A3B32]" />;
+    if (score >= 50) return <AlertTriangle size={20} className="text-[#D2A795]" />;
+    return <XCircle size={20} className="text-red-800/60" />;
   };
 
   return (
-    <section className="px-4 md:px-8 max-w-7xl mx-auto mb-16">
-      {/* Section header */}
-      <motion.div
-        className="flex items-center gap-3 mb-8"
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-      >
-        <Zap size={20} className="text-[#7C3AED]" />
-        <h2 className="serif text-3xl font-semibold text-white">
-          The Risk Engine
+    <section id="risk-engine" className="px-4 md:px-8 max-w-7xl mx-auto mb-24 relative z-10">
+      <div className="flex flex-col items-center mb-12 text-center">
+        <h2 className="serif text-4xl md:text-5xl font-bold text-[#2C241B] mb-4">
+          Risk Engine
         </h2>
-        <div className="flex-1 h-px bg-gradient-to-r from-[#7C3AED]/30 to-transparent ml-2" />
-      </motion.div>
+        <p className="text-[#4A3B32] sans-serif max-w-lg">
+          Analyze the compatibility of a prospective fragrance against your established preferences.
+        </p>
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {/* Search panel */}
-        <motion.div
-          className="lg:col-span-2 glass rounded-3xl p-6"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <div className="flex items-center gap-2 mb-4">
-            <Search size={14} className="text-[#7C3AED]" />
-            <p className="text-xs text-[#94A3B8] uppercase tracking-widest font-mono">
-              Target Fragrance
-            </p>
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+        
+        {/* Left Column: Search & Details */}
+        <div className="lg:col-span-5 flex flex-col gap-6">
+          <motion.div
+            className="glass rounded-2xl p-6 md:p-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <div className="flex items-center gap-2 mb-6 text-[#4A3B32]">
+              <Search size={16} />
+              <p className="text-xs uppercase tracking-widest font-semibold">Target Inquiry</p>
+            </div>
 
-          {/* Search bar */}
-          <div className="flex gap-2 mb-4">
-            <input
-              className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#7C3AED]/50 transition-colors font-mono"
-              placeholder="Search fragrance..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleSearch()}
-            />
-            <button
-              onClick={handleSearch}
-              disabled={!searchQuery.trim() || searching}
-              className="px-5 py-3 rounded-xl font-mono text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
-              style={{
-                background: 'linear-gradient(135deg, #7C3AED, #A78BFA)',
-                color: '#fff',
-              }}
-            >
-              {searching ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
-            </button>
-          </div>
-
-          {searchError && (
-            <p className="text-xs text-red-400 mb-4 font-mono">{searchError}</p>
-          )}
-
-          {/* Target details */}
-          {target && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-4"
-            >
-              {target.image_url && (
-                <div className="flex justify-center mb-4">
-                  <img
-                    src={target.image_url}
-                    alt={target.name}
-                    className="w-20 h-20 object-contain"
-                  />
-                </div>
-              )}
-
-              <div>
-                <p className="text-xs text-[#94A3B8] uppercase tracking-widest mb-1 font-mono">Brand</p>
-                <p className="text-white font-semibold serif text-lg">{target.brand}</p>
-              </div>
-
-              <div>
-                <p className="text-xs text-[#94A3B8] uppercase tracking-widest mb-1 font-mono">Name</p>
-                <p className="text-white font-semibold serif text-lg">{target.name}</p>
-              </div>
-
-              {target.accords.length > 0 && (
-                <div>
-                  <p className="text-xs text-[#94A3B8] uppercase tracking-widest mb-2 font-mono">Accords</p>
-                  <div className="flex flex-wrap gap-2">
-                    {target.accords.map(accord => (
-                      <span
-                        key={accord}
-                        className="text-xs px-3 py-1.5 rounded-full font-mono bg-[#7C3AED]/20 border border-[#7C3AED]/40 text-[#A78BFA]"
-                      >
-                        {accord}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Price input */}
-              <div>
-                <p className="text-xs text-[#94A3B8] uppercase tracking-widest mb-1 font-mono">
-                  Price ({currency}) — Optional
-                </p>
-                <input
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#D4AF37]/50 transition-colors font-mono"
-                  placeholder="e.g. 320"
-                  type="number"
-                  value={targetPrice}
-                  onChange={e => setTargetPrice(e.target.value)}
-                />
-              </div>
-
-              {/* Calculate button */}
+            <div className="flex flex-col gap-3 mb-6">
+              <input
+                className="w-full bg-[#FDFBF7] border border-[#E8CFC1] rounded-xl px-4 py-3.5 text-sm text-[#2C241B] placeholder-[#4A3B32]/40 focus:outline-none focus:border-[#D2A795] focus:ring-1 focus:ring-[#D2A795] transition-all sans-serif"
+                placeholder="Enter a fragrance name..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSearch()}
+              />
               <button
-                onClick={handleCalculate}
-                disabled={calculating}
-                className={`w-full py-3.5 rounded-xl font-mono text-sm font-semibold flex items-center justify-center gap-2 transition-all ${
-                  calculating ? 'pulse-gold' : ''
-                }`}
-                style={{
-                  background: 'linear-gradient(135deg, #7C3AED, #A78BFA)',
-                  color: '#fff',
-                }}
+                onClick={handleSearch}
+                disabled={!searchQuery.trim() || searching}
+                className="w-full py-3.5 rounded-xl sans-serif text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 bg-[#4A3B32] text-[#FDFBF7] hover:bg-[#2C241B]"
               >
-                {calculating ? (
-                  <>
-                    <motion.div
-                      className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }}
-                    />
-                    Analysing...
-                  </>
-                ) : (
-                  <>
-                    <Zap size={14} />
-                    Calculate Risk
-                  </>
-                )}
+                {searching ? <Loader2 size={16} className="animate-spin" /> : 'Search Database'}
               </button>
-            </motion.div>
-          )}
+            </div>
 
-          {!target && !searching && (
-            <p className="text-center text-[#94A3B8]/60 text-sm font-mono py-8">
-              Search for a fragrance to begin
-            </p>
-          )}
-        </motion.div>
+            {searchError && (
+              <p className="text-xs text-red-800/80 mb-4 sans-serif px-2">{searchError}</p>
+            )}
 
-        {/* Result panel */}
-        <div className="lg:col-span-3">
+            <AnimatePresence mode="wait">
+              {target && (
+                <motion.div
+                  key="target-details"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="space-y-6 pt-6 border-t border-[#E8CFC1]/40"
+                >
+                  <div className="text-center">
+                    <p className="text-xs text-[#D2A795] uppercase tracking-widest mb-1 sans-serif font-semibold">{target.brand}</p>
+                    <p className="text-[#2C241B] font-bold serif text-2xl">{target.name}</p>
+                  </div>
+
+                  {target.accords && target.accords.length > 0 && (
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {target.accords.map(accord => (
+                        <span key={accord} className="text-[10px] px-3 py-1 rounded-full uppercase tracking-wider font-semibold bg-[#E8CFC1]/30 text-[#4A3B32]">
+                          {accord}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Visual Notes Pyramid */}
+                  {target.notes && (target.notes.top?.length > 0 || target.notes.middle?.length > 0 || target.notes.base?.length > 0) && (
+                    <div className="py-4 space-y-4">
+                      <p className="text-xs text-[#4A3B32] uppercase tracking-widest text-center font-semibold mb-2">Olfactory Pyramid</p>
+                      
+                      {target.notes.top?.length > 0 && (
+                        <div className="text-center">
+                          <p className="text-[10px] uppercase text-[#D2A795] font-bold tracking-widest mb-1">Top Notes</p>
+                          <p className="text-sm text-[#4A3B32] serif italic">{target.notes.top.join(', ')}</p>
+                        </div>
+                      )}
+                      
+                      {target.notes.middle?.length > 0 && (
+                        <div className="text-center">
+                          <p className="text-[10px] uppercase text-[#D2A795] font-bold tracking-widest mb-1">Heart Notes</p>
+                          <p className="text-sm text-[#4A3B32] serif italic">{target.notes.middle.join(', ')}</p>
+                        </div>
+                      )}
+                      
+                      {target.notes.base?.length > 0 && (
+                        <div className="text-center">
+                          <p className="text-[10px] uppercase text-[#D2A795] font-bold tracking-widest mb-1">Base Notes</p>
+                          <p className="text-sm text-[#4A3B32] serif italic">{target.notes.base.join(', ')}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="pt-4 border-t border-[#E8CFC1]/40">
+                    <p className="text-xs text-[#4A3B32] uppercase tracking-widest mb-2 font-semibold">Retail Price ({currency})</p>
+                    <input
+                      className="w-full bg-[#FDFBF7] border border-[#E8CFC1] rounded-xl px-4 py-3 text-sm text-[#2C241B] placeholder-[#4A3B32]/40 focus:outline-none focus:border-[#D2A795] transition-all sans-serif mb-4"
+                      placeholder="Optional price..."
+                      type="number"
+                      value={targetPrice}
+                      onChange={e => setTargetPrice(e.target.value)}
+                    />
+                    
+                    <button
+                      onClick={handleCalculate}
+                      disabled={calculating}
+                      className={`w-full py-4 rounded-xl sans-serif text-sm font-semibold flex items-center justify-center gap-2 transition-all bg-[#D2A795] text-white hover:bg-[#C19482] shadow-sm ${
+                        calculating ? 'opacity-80' : ''
+                      }`}
+                    >
+                      {calculating ? (
+                        <>
+                          <Loader2 size={16} className="animate-spin" /> Analyzing Compatibility...
+                        </>
+                      ) : (
+                        'Generate Risk Assessment'
+                      )}
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        </div>
+
+        {/* Right Column: Results */}
+        <div className="lg:col-span-7">
           <AnimatePresence mode="wait">
             {result ? (
               <motion.div
                 key="result"
-                className="glass rounded-3xl p-8"
+                className="glass rounded-2xl p-6 md:p-10 min-h-full flex flex-col"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
                 transition={{ duration: 0.5 }}
               >
-                {/* Dashboard header */}
-                <div className="flex items-center gap-2 mb-6">
-                  <Sparkles size={16} className="text-[#D4AF37]" />
-                  <p className="text-xs text-[#94A3B8] uppercase tracking-widest font-mono">
-                    Scent-inel Dashboard
-                  </p>
+                <div className="flex items-center justify-between mb-8 pb-4 border-b border-[#E8CFC1]/40">
+                  <div className="flex items-center gap-2">
+                    <Droplets size={16} className="text-[#D2A795]" />
+                    <p className="text-xs text-[#4A3B32] uppercase tracking-widest font-semibold">Intelligence Report</p>
+                  </div>
+                  {result.score >= 80 && <span className="text-[10px] bg-[#E8CFC1]/40 text-[#4A3B32] px-2 py-1 rounded-full uppercase tracking-wider font-bold">Approved</span>}
                 </div>
 
-                {/* Gauge + verdict */}
-                <div className="flex flex-col items-center mb-8">
+                <div className="flex flex-col items-center mb-10">
                   <RiskGauge score={result.score} />
-
+                  
                   <motion.div
-                    className="mt-6 text-center max-w-md"
+                    className="mt-8 text-center max-w-sm"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.8 }}
                   >
                     <div className="flex items-center justify-center gap-2 mb-2">
                       {getVerdictIcon(result.score)}
-                      <span
-                        className="serif text-xl font-semibold"
-                        style={{ color: getVerdictColor(result.score) }}
-                      >
-                        {result.score >= 80 ? 'Safe Buy' : result.score >= 50 ? 'Proceed with Caution' : 'High Risk'}
+                      <span className="serif text-2xl font-bold text-[#2C241B]">
+                        {result.score >= 80 ? 'Safe Acquisition' : result.score >= 50 ? 'Proceed with Caution' : 'High Risk Profile'}
                       </span>
                     </div>
-                    <p className="text-sm text-[#94A3B8] font-mono italic leading-relaxed">
+                    <p className="text-sm text-[#4A3B32] sans-serif italic leading-relaxed">
                       "{result.verdict}"
                     </p>
                   </motion.div>
                 </div>
 
-                {/* AI Insight */}
                 {result.ai_insight && (
                   <motion.div
-                    className="glass-gold rounded-2xl p-5 mb-6"
+                    className="bg-[#FDFBF7] border border-[#E8CFC1]/50 rounded-xl p-5 mb-8 shadow-sm"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 1 }}
                   >
                     <div className="flex items-start gap-3">
-                      <Sparkles size={16} className="text-[#D4AF37] mt-0.5 flex-shrink-0" />
+                      <Sparkles size={16} className="text-[#D2A795] mt-0.5 flex-shrink-0" />
                       <div>
-                        <p className="text-xs text-[#D4AF37] uppercase tracking-widest font-mono mb-2">
-                          AI Insight
-                        </p>
-                        <p className="text-sm text-white/90 leading-relaxed font-mono">
+                        <p className="text-xs text-[#D2A795] uppercase tracking-widest font-bold mb-2">Curator's Note</p>
+                        <p className="text-sm text-[#4A3B32] leading-relaxed sans-serif">
                           {result.ai_insight}
                         </p>
                       </div>
@@ -301,59 +267,68 @@ export default function RiskEngine({ profile, currency }: Props) {
                   </motion.div>
                 )}
 
-                {/* Radar */}
-                {result.breakdown.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1.2 }}
-                    className="mb-6"
-                  >
-                    <p className="text-xs text-[#94A3B8] uppercase tracking-widest mb-3 font-mono">
-                      Note Alignment
-                    </p>
-                    <AccordRadar breakdown={result.breakdown} />
-                  </motion.div>
-                )}
+                <div className="grid md:grid-cols-2 gap-8 mb-4">
+                  {result.breakdown && result.breakdown.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 1.2 }}
+                    >
+                      <p className="text-xs text-[#4A3B32] uppercase tracking-widest font-semibold mb-4 text-center">Accord Alignment</p>
+                      <AccordRadar breakdown={result.breakdown} />
+                    </motion.div>
+                  )}
 
-                {/* Clone suggestion */}
-                {result.clone && (
-                  <motion.div
-                    className="glass-gold rounded-2xl p-5"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 1.4 }}
-                  >
-                    <div className="flex items-start gap-3">
-                      <Lightbulb size={16} className="text-[#D4AF37] mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="text-xs text-[#D4AF37] uppercase tracking-widest font-mono mb-2">
-                          Clone Finder — Pro Tip
-                        </p>
-                        <p className="text-base text-white font-semibold serif">
-                          {result.clone.brand} — {result.clone.name}
-                        </p>
-                        <p className="text-xs text-[#94A3B8] font-mono mt-1">
-                          ~{result.clone.currency} {result.clone.price} · {result.clone.reason}
-                        </p>
+                  {result.clones && result.clones.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 1.4 }}
+                      className="flex flex-col"
+                    >
+                      <div className="flex items-center gap-2 mb-4 justify-center md:justify-start">
+                        <Info size={14} className="text-[#D2A795]" />
+                        <p className="text-xs text-[#4A3B32] uppercase tracking-widest font-semibold">Alternative Suggestions</p>
                       </div>
-                    </div>
-                  </motion.div>
-                )}
+                      
+                      <div className="space-y-3 flex-1">
+                        {result.clones.map((clone, idx) => (
+                          <motion.div
+                            key={`${clone.brand}-${clone.name}`}
+                            className="bg-[#FDFBF7] rounded-xl p-4 border border-[#E8CFC1]/30 hover:border-[#D2A795] transition-colors shadow-sm"
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 1.5 + idx * 0.1 }}
+                          >
+                            <div className="flex justify-between items-start mb-1">
+                              <p className="text-sm text-[#2C241B] font-bold serif">{clone.brand} — {clone.name}</p>
+                              <p className="text-xs font-semibold text-[#D2A795] whitespace-nowrap ml-2">
+                                ${clone.price} {clone.currency}
+                              </p>
+                            </div>
+                            <p className="text-[11px] text-[#4A3B32] sans-serif leading-relaxed">
+                              {clone.reason}
+                            </p>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
               </motion.div>
             ) : (
               <motion.div
                 key="empty"
-                className="glass rounded-3xl p-8 flex flex-col items-center justify-center min-h-96"
+                className="glass rounded-2xl p-8 flex flex-col items-center justify-center h-full min-h-[400px]"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
               >
-                <div className="w-20 h-20 rounded-full bg-[#7C3AED]/10 border border-[#7C3AED]/20 flex items-center justify-center mb-4">
-                  <Zap size={32} className="text-[#7C3AED]/50" />
+                <div className="w-16 h-16 rounded-full bg-[#E8CFC1]/20 flex items-center justify-center mb-4">
+                  <Search size={24} className="text-[#D2A795]" />
                 </div>
-                <p className="text-[#94A3B8] text-sm font-mono text-center max-w-xs leading-relaxed">
-                  Search for a target fragrance and calculate your personalized blind buy risk
+                <p className="text-[#4A3B32] text-sm sans-serif text-center max-w-xs leading-relaxed">
+                  Initiate a search to generate a personalized risk assessment for your next acquisition.
                 </p>
               </motion.div>
             )}

@@ -26,44 +26,44 @@ export default function AccordRadar({ breakdown }: Props) {
     <div className="w-full h-64">
       <ResponsiveContainer width="100%" height="100%">
         <RadarChart data={data} margin={{ top: 10, right: 20, bottom: 10, left: 20 }}>
-          <PolarGrid stroke="rgba(255,255,255,0.08)" />
+          <PolarGrid stroke="rgba(232, 207, 193, 0.4)" />
           <PolarAngleAxis
             dataKey="accord"
-            tick={{ fill: '#94A3B8', fontSize: 10, fontFamily: 'JetBrains Mono' }}
+            tick={{ fill: '#4A3B32', fontSize: 10, fontFamily: 'Inter' }}
           />
           <Radar
             name="Loved"
             dataKey="Love"
-            stroke="#D4AF37"
-            fill="#D4AF37"
+            stroke="#22c55e"
+            fill="#22c55e"
             fillOpacity={0.15}
             strokeWidth={1.5}
           />
           <Radar
             name="Hated"
             dataKey="Hate"
-            stroke="#ef4444"
-            fill="#ef4444"
+            stroke="#991b1b"
+            fill="#991b1b"
             fillOpacity={0.1}
             strokeWidth={1.5}
           />
           <Radar
             name="Target"
             dataKey="Target"
-            stroke="#A78BFA"
-            fill="#7C3AED"
-            fillOpacity={0.2}
+            stroke="#D2A795"
+            fill="#E8CFC1"
+            fillOpacity={0.3}
             strokeWidth={2}
             strokeDasharray="4 2"
           />
           <Tooltip
             contentStyle={{
-              background: 'rgba(10,10,10,0.95)',
-              border: '1px solid rgba(212,175,55,0.2)',
+              background: 'rgba(253, 251, 247, 0.95)',
+              border: '1px solid rgba(232, 207, 193, 0.5)',
               borderRadius: '12px',
-              fontFamily: 'JetBrains Mono',
+              fontFamily: 'Inter',
               fontSize: '11px',
-              color: '#F8F4E8',
+              color: '#2C241B',
             }}
           />
         </RadarChart>
@@ -72,13 +72,13 @@ export default function AccordRadar({ breakdown }: Props) {
       {/* Legend */}
       <div className="flex items-center justify-center gap-5 mt-1">
         {[
-          { color: '#D4AF37', label: 'Loved' },
-          { color: '#ef4444', label: 'Hated' },
-          { color: '#A78BFA', label: 'Target' },
+          { color: '#22c55e', label: 'Loved' },
+          { color: '#991b1b', label: 'Hated' },
+          { color: '#D2A795', label: 'Target' },
         ].map(({ color, label }) => (
           <div key={label} className="flex items-center gap-1.5">
             <div className="w-2.5 h-2.5 rounded-full" style={{ background: color }} />
-            <span className="text-[10px] text-[#94A3B8] font-mono">{label}</span>
+            <span className="text-[10px] text-[#4A3B32] sans-serif">{label}</span>
           </div>
         ))}
       </div>
