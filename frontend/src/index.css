@@ -5,11 +5,11 @@
   --nothing-black: #000000;
   --nothing-white: #FFFFFF;
   --nothing-red: #FF0000;
-  --leaf-green: #2E5A27;
-  --petal-pink: #E6C7C2;
+  --nothing-green: #00FF00;
+  --nothing-yellow: #FFFF00;
   --mist-grey: #808080;
-  --glass-white: rgba(255, 255, 255, 0.4);
-  --glass-black: rgba(0, 0, 0, 0.4);
+  --glass-white: rgba(255, 255, 255, 0.8);
+  --glass-black: rgba(0, 0, 0, 0.8);
 }
 
 * {
@@ -55,7 +55,7 @@ body {
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 32px;
+  border-radius: 12px;
 }
 
 .nothing-glass-dark {
@@ -63,36 +63,9 @@ body {
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 32px;
+  border-radius: 12px;
 }
 
-/* Breathing Background Animation */
-@keyframes breathing {
-  0%, 100% { opacity: 0.15; transform: scale(1); }
-  50% { opacity: 0.3; transform: scale(1.05); }
-}
-
-.bg-breathing {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background: radial-gradient(circle at 20% 30%, var(--leaf-green), transparent 40%),
-              radial-gradient(circle at 80% 70%, var(--petal-pink), transparent 40%),
-              radial-gradient(circle at 50% 50%, var(--nothing-white), transparent 60%);
-  filter: blur(100px);
-  animation: breathing 10s ease-in-out infinite;
-}
-
-/* Glyph Pulse Animation */
-@keyframes glyph-pulse {
-  0% { border-color: rgba(0, 0, 0, 0.1); }
-  50% { border-color: var(--nothing-red); }
-  100% { border-color: rgba(0, 0, 0, 0.1); }
-}
-
-.glyph-hover:hover {
-  animation: glyph-pulse 1s ease-in-out forwards;
-}
 
 /* Focus & Selection */
 input:focus,
@@ -115,26 +88,5 @@ button:focus {
   border-radius: 50%;
   margin-left: 4px;
   vertical-align: middle;
-}
-
-/* Botanical Pattern */
-.botanical-pattern {
-  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5c-5 0-10 5-10 10s5 10 10 10 10-5 10-10-5-10-10-10zm0 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0 10c-10 0-20 10-20 20h40c0-10-10-20-20-20zm-15 18c2-4 8-8 15-8s13 4 15 8H15z' fill='%232E5A27' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
-}
-
-/* Organic Masking */
-.mask-botanical {
-  mask-image: radial-gradient(circle at center, black 60%, transparent 100%);
-  -webkit-mask-image: radial-gradient(circle at center, black 60%, transparent 100%);
-}
-
-/* Scent Diffusion Particles */
-.scent-particle {
-  position: absolute;
-  pointer-events: none;
-  background: radial-gradient(circle, var(--leaf-green) 0%, transparent 70%);
-  border-radius: 50%;
-  filter: blur(8px);
-  opacity: 0.2;
 }
 

@@ -56,7 +56,7 @@ export default function FragranceVault({ profile, onUpdate, currency }: Props) {
         <div className="nothing-glass p-8 border-black/5 shadow-[0_12px_40px_rgba(0,0,0,0.02)]">
           <div className="flex items-center justify-between mb-10">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-[16px] bg-green-500/5 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-md bg-green-500/5 flex items-center justify-center">
                 <Heart size={18} className="text-green-600" />
               </div>
               <div>
@@ -70,7 +70,7 @@ export default function FragranceVault({ profile, onUpdate, currency }: Props) {
             </div>
             <button
               onClick={() => setModal('love')}
-              className="nothing-glass px-5 py-2.5 flex items-center gap-2 dot-matrix text-[10px] font-bold tracking-widest hover:bg-black hover:text-white transition-all border-black/10"
+              className="nothing-glass px-5 py-2.5 flex items-center gap-2 dot-matrix text-[11px] font-bold tracking-[0.2em] hover:bg-black hover:text-white transition-all border-black/10"
             >
               <Plus size={14} />
               ADD_NEW
@@ -103,7 +103,7 @@ export default function FragranceVault({ profile, onUpdate, currency }: Props) {
         <div className="nothing-glass p-8 border-black/5 shadow-[0_12px_40px_rgba(0,0,0,0.02)]">
           <div className="flex items-center justify-between mb-10">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-[16px] bg-red-500/5 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-md bg-red-500/5 flex items-center justify-center">
                 <Frown size={18} className="text-red-600" />
               </div>
               <div>
@@ -117,7 +117,7 @@ export default function FragranceVault({ profile, onUpdate, currency }: Props) {
             </div>
             <button
               onClick={() => setModal('hate')}
-              className="nothing-glass px-5 py-2.5 flex items-center gap-2 dot-matrix text-[10px] font-bold tracking-widest hover:bg-black hover:text-white transition-all border-black/10"
+              className="nothing-glass px-5 py-2.5 flex items-center gap-2 dot-matrix text-[11px] font-bold tracking-[0.2em] hover:bg-black hover:text-white transition-all border-black/10"
             >
               <Plus size={14} />
               ADD_NEW
@@ -181,11 +181,11 @@ function EmptyShelf({
       className="w-full h-44 nothing-glass border-dashed border-black/10 flex flex-col items-center justify-center gap-4 transition-all hover:bg-black/[0.02] group"
     >
       <div 
-        className={`w-12 h-12 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 ${color === 'green' ? 'bg-green-500/10' : 'bg-red-500/10'}`}
+        className={`w-12 h-12 rounded-lg flex items-center justify-center transition-transform group-hover:scale-110 ${color === 'green' ? 'bg-green-500/10' : 'bg-red-500/10'}`}
       >
         <Plus size={20} className={color === 'green' ? 'text-green-600' : 'text-red-600'} />
       </div>
-      <span className="dot-matrix text-[9px] font-bold tracking-[0.2em] text-black/40">
+      <span className="dot-matrix text-[10px] font-bold tracking-[0.2em] text-black/40 group-hover:text-black">
         {label}
       </span>
     </button>

@@ -110,7 +110,7 @@ export default function AddFragranceModal({ open, type, onClose, onAdd, currency
               {/* Header */}
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-[12px] flex items-center justify-center ${isLove ? 'bg-green-500/5' : 'bg-red-500/5'}`}>
+                  <div className={`w-10 h-10 rounded-md flex items-center justify-center ${isLove ? 'bg-green-500/5' : 'bg-red-500/5'}`}>
                     <Sparkles size={18} className={isLove ? 'text-green-600' : 'text-red-600'} />
                   </div>
                   <div>
@@ -124,7 +124,7 @@ export default function AddFragranceModal({ open, type, onClose, onAdd, currency
                 </div>
                 <button
                   onClick={handleClose}
-                  className="w-10 h-10 rounded-full nothing-glass flex items-center justify-center hover:bg-black hover:text-white transition-all border-black/5"
+                  className="w-10 h-10 rounded-lg nothing-glass flex items-center justify-center hover:bg-black hover:text-white transition-all border-black/5"
                 >
                   <X size={16} />
                 </button>
@@ -136,7 +136,7 @@ export default function AddFragranceModal({ open, type, onClose, onAdd, currency
                   <div className="relative flex-1">
                     <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-black/20" />
                     <input
-                      className="w-full bg-black/5 border-none rounded-2xl pl-12 pr-4 py-4 dot-matrix text-sm text-black placeholder-black/20 focus:ring-2 focus:ring-black/5 transition-all"
+                      className="w-full bg-black/5 border-none rounded-xl pl-12 pr-4 py-4 dot-matrix text-sm text-black placeholder-black/20 focus:ring-2 focus:ring-black/5 transition-all"
                       placeholder="Molecular_Search..."
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
@@ -146,7 +146,7 @@ export default function AddFragranceModal({ open, type, onClose, onAdd, currency
                   <button
                     onClick={handleSearch}
                     disabled={!searchQuery.trim() || searching}
-                    className="px-6 py-4 rounded-2xl dot-matrix text-[10px] tracking-[0.2em] font-bold transition-all bg-black text-white hover:bg-red-600 disabled:opacity-20"
+                    className="px-6 py-4 rounded-xl dot-matrix text-[10px] tracking-[0.2em] font-bold transition-all bg-black text-white hover:bg-red-600 disabled:opacity-20"
                   >
                     {searching ? <Loader2 size={16} className="animate-spin" /> : 'INIT'}
                   </button>
@@ -166,7 +166,7 @@ export default function AddFragranceModal({ open, type, onClose, onAdd, currency
                     className="space-y-6"
                   >
                     {/* Source & Image */}
-                    <div className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-black/[0.02] border border-black/5">
+                    <div className="flex items-center justify-between gap-4 p-4 rounded-xl bg-black/[0.02] border border-black/5">
                       <div className="flex-1">
                          <span className="dot-matrix text-[8px] px-2 py-1 rounded-full bg-black text-white tracking-widest font-bold mb-2 inline-block">
                           {source.toUpperCase()}
@@ -174,7 +174,7 @@ export default function AddFragranceModal({ open, type, onClose, onAdd, currency
                         <h3 className="dot-matrix text-sm font-bold truncate mb-1">{name}</h3>
                         <p className="dot-matrix text-[9px] text-black/40 font-bold tracking-widest">{brand}</p>
                       </div>
-                      <div className="w-16 h-16 rounded-[14px] bg-white border border-black/5 flex items-center justify-center p-2">
+                      <div className="w-16 h-16 rounded-md bg-white border border-black/5 flex items-center justify-center p-2">
                         {imageUrl ? (
                           <img src={imageUrl} alt={name} className="w-full h-full object-contain grayscale" />
                         ) : (
@@ -221,7 +221,7 @@ export default function AddFragranceModal({ open, type, onClose, onAdd, currency
                     <div>
                       <p className="dot-matrix text-[8px] text-black/40 tracking-[0.2em] mb-2 font-bold uppercase">Retail_Price ({currency})</p>
                       <input
-                        className="w-full bg-black/5 border-none rounded-2xl px-5 py-4 dot-matrix text-sm text-black placeholder-black/20 focus:ring-2 focus:ring-black/5 transition-all"
+                        className="w-full bg-black/5 border-none rounded-xl px-5 py-4 dot-matrix text-sm text-black placeholder-black/20 focus:ring-2 focus:ring-black/5 transition-all"
                         placeholder="Valuation..."
                         type="number"
                         value={price}
@@ -232,7 +232,7 @@ export default function AddFragranceModal({ open, type, onClose, onAdd, currency
                     {/* Submit */}
                     <button
                       onClick={handleSubmit}
-                      className={`w-full py-5 rounded-2xl dot-matrix text-[10px] tracking-[0.4em] font-bold transition-all shadow-lg text-white ${isLove ? 'bg-black hover:bg-green-600' : 'bg-black hover:bg-red-600'}`}
+                      className={`w-full py-5 rounded-xl dot-matrix text-[11px] tracking-[0.4em] font-bold transition-all shadow-lg text-white ${isLove ? 'bg-black hover:bg-green-600' : 'bg-black hover:bg-red-600'}`}
                     >
                       COMMIT_TO_VAULT
                     </button>
@@ -241,7 +241,7 @@ export default function AddFragranceModal({ open, type, onClose, onAdd, currency
                   <motion.div 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="py-12 flex flex-col items-center justify-center border border-dashed border-black/10 rounded-3xl"
+                    className="py-12 flex flex-col items-center justify-center border border-dashed border-black/10 rounded-xl"
                   >
                     <div className="w-12 h-12 rounded-full bg-black/5 flex items-center justify-center mb-4">
                       <Search size={20} className="text-black/10" />

@@ -22,7 +22,7 @@ export default function CurrencySelector({ currency, onChange }: Props) {
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-3 px-5 py-2.5 rounded-full nothing-glass border-black/5 hover:bg-black hover:text-white transition-all group"
+        className="flex items-center gap-3 px-5 py-2.5 rounded-xl nothing-glass border-black/5 hover:bg-black hover:text-white transition-all group"
       >
         <div className="w-1.5 h-1.5 rounded-full bg-red-500 group-hover:bg-white transition-colors" />
         <span className="dot-matrix text-[10px] font-bold tracking-[0.2em]">{currency}</span>
@@ -53,7 +53,7 @@ export default function CurrencySelector({ currency, onChange }: Props) {
                     onChange(c);
                     setOpen(false);
                   }}
-                  className={`w-full text-left px-3 py-2.5 rounded-xl transition-all group/item flex items-center justify-between ${
+                  className={`w-full text-left px-3 py-2.5 rounded-lg transition-all group/item flex items-center justify-between ${
                     c === currency
                       ? 'bg-black text-white'
                       : 'text-black/60 hover:bg-black/5'

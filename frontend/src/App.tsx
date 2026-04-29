@@ -32,30 +32,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-white text-black relative font-sans overflow-x-hidden">
-      {/* Organic Background Layer 1: Breathing Gradient */}
-      <div className="bg-breathing" />
-      
-      {/* Organic Background Layer 2: Botanical Pattern */}
-      <div className="fixed inset-0 botanical-pattern opacity-10 pointer-events-none" />
-
-      {/* Scent Particles */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        {[...Array(6)].map((_, i) => (
-          <div 
-            key={i}
-            className="scent-particle"
-            style={{
-              width: `${Math.random() * 400 + 100}px`,
-              height: `${Math.random() * 400 + 100}px`,
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animation: `breathing ${Math.random() * 5 + 5}s ease-in-out infinite alternate`,
-              animationDelay: `${Math.random() * 5}s`
-            }}
-          />
-        ))}
-      </div>
-
       <Navbar currency={currency} onCurrencyChange={setCurrency} />
 
       <main className="relative z-10 pt-24">

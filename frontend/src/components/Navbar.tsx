@@ -11,15 +11,14 @@ export default function Navbar({ currency, onCurrencyChange }: Props) {
   return (
     <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-2xl px-4">
       <motion.nav
-        className="nothing-glass px-6 py-4 flex items-center justify-between border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.05)]"
+        className="nothing-glass px-6 py-4 flex items-center justify-between border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.05)] rounded-xl"
         initial={{ opacity: 0, y: -20, x: '-50%' }}
         animate={{ opacity: 1, y: 0, x: '-50%' }}
         transition={{ duration: 0.8, ease: 'easeOut' }}
-        style={{ left: '50%', x: '-50%' }}
       >
         {/* Logo */}
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center">
+          <div className="w-8 h-8 rounded-xl bg-black flex items-center justify-center">
             <Droplets size={16} className="text-white" />
           </div>
           <span className="dot-matrix text-xl font-bold tracking-tighter red-dot">

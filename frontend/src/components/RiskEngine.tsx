@@ -108,7 +108,7 @@ export default function RiskEngine({ profile, currency }: Props) {
 
             <div className="flex flex-col gap-4 mb-8">
               <input
-                className="w-full bg-black/5 border-none rounded-2xl px-5 py-4 dot-matrix text-sm text-black placeholder-black/20 focus:ring-2 focus:ring-black/5 transition-all"
+                className="w-full bg-black/5 border-none rounded-xl px-5 py-4 dot-matrix text-sm text-black placeholder-black/20 focus:ring-2 focus:ring-black/5 transition-all"
                 placeholder="Fragrance_Search_Key..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
@@ -117,7 +117,7 @@ export default function RiskEngine({ profile, currency }: Props) {
               <button
                 onClick={handleSearch}
                 disabled={!searchQuery.trim() || searching}
-                className="w-full py-4 rounded-2xl dot-matrix text-[10px] tracking-[0.3em] font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2 bg-black text-white hover:bg-red-600"
+                className="w-full py-4 rounded-xl dot-matrix text-[10px] tracking-[0.3em] font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2 bg-black text-white hover:bg-red-600"
               >
                 {searching ? <Loader2 size={16} className="animate-spin" /> : 'INITIALIZE_SEARCH'}
               </button>
@@ -186,7 +186,7 @@ export default function RiskEngine({ profile, currency }: Props) {
                   <div className="pt-8 border-t border-black/5">
                     <p className="dot-matrix text-[9px] text-black/40 tracking-[0.2em] mb-3 font-bold uppercase">VALUATION_INDEX ({currency})</p>
                     <input
-                      className="w-full bg-black/5 border-none rounded-2xl px-5 py-4 dot-matrix text-sm text-black placeholder-black/20 focus:ring-2 focus:ring-black/5 transition-all mb-6"
+                      className="w-full bg-black/5 border-none rounded-xl px-5 py-4 dot-matrix text-sm text-black placeholder-black/20 focus:ring-2 focus:ring-black/5 transition-all mb-6"
                       placeholder="Retail_Price..."
                       type="number"
                       value={targetPrice}
@@ -196,7 +196,7 @@ export default function RiskEngine({ profile, currency }: Props) {
                     <button
                       onClick={handleCalculate}
                       disabled={calculating}
-                      className={`w-full py-5 rounded-2xl dot-matrix text-[11px] tracking-[0.4em] font-bold flex items-center justify-center gap-3 transition-all bg-black text-white hover:bg-red-600 shadow-lg ${
+                      className={`w-full py-5 rounded-xl dot-matrix text-[11px] tracking-[0.4em] font-bold flex items-center justify-center gap-3 transition-all bg-black text-white hover:bg-red-600 shadow-lg ${
                         calculating ? 'opacity-80' : ''
                       }`}
                     >
@@ -345,12 +345,12 @@ export default function RiskEngine({ profile, currency }: Props) {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
               >
-                <div className="w-20 h-20 rounded-full bg-black/5 flex items-center justify-center mb-8 relative">
+                <div className="w-20 h-20 rounded-xl bg-black/5 flex items-center justify-center mb-8 relative">
                   <Search size={32} className="text-black/10" />
                   <motion.div 
                     animate={{ rotate: 360 }}
                     transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
-                    className="absolute inset-0 border border-dashed border-black/10 rounded-full"
+                    className="absolute inset-0 border border-dashed border-black/10 rounded-xl"
                   />
                 </div>
                 <p className="dot-matrix text-black/40 text-[10px] tracking-[0.2em] font-bold text-center max-w-xs leading-relaxed uppercase">
