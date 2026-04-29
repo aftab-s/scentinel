@@ -6,6 +6,11 @@ import os
 import json
 import asyncio
 import re
+import time
+import html
+from urllib.parse import quote_plus, urlparse, parse_qs, unquote
+from urllib.request import Request, urlopen
+from urllib.error import URLError, HTTPError
 from groq import Groq
 
 app = FastAPI(title="Scent-inel Risk Engine", version="2.0.0")
@@ -85,9 +90,11 @@ class AccordScore(BaseModel):
 class CloneSuggestion(BaseModel):
     brand: str
     name: str
-    price: float
+    price: Optional[float] = None
     currency: str
     reason: str
+    url: Optional[str] = None
+    source: Optional[str] = None
 
 class RiskResponse(BaseModel):
     score: int
@@ -248,129 +255,320 @@ Set confidence to "low" if:
         return None
 
 
-# ── Tier 2: Web Search + AI Extraction ───────────────────────────────────────
+# ── Tier 2: Real web search + scraping + optional AI extraction ──────────────
 
-async def search_via_web(query: str) -> Optional[FragranceDetails]:
-    """Tier 2: Use web search to find fragrance info, then extract with AI."""
-    if not groq_client:
-        return None
-    
+SEARCH_CACHE: dict[str, tuple[float, FragranceDetails]] = {}
+CLONE_CACHE: dict[str, tuple[float, list[CloneSuggestion]]] = {}
+CACHE_TTL_SECONDS = 60 * 60 * 24
+USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122 Safari/537.36"
+)
+FRAGRANCE_SOURCES = [
+    "fragrantica.com",
+    "parfumo.com",
+    "basenotes.com",
+    "perfumemaster.com",
+    "wikiparfum.com",
+    "official",
+]
+VALID_ACCORDS = {
+    "Woody", "Spicy", "Fresh", "Floral", "Citrus", "Sweet", "Musky",
+    "Earthy", "Smoky", "Leather", "Oriental", "Aquatic", "Gourmand",
+    "Powdery", "Green", "Fruity", "Aromatic", "Amber", "Vanilla", "Oud",
+    "Animalic", "Balsamic", "Herbal", "Mineral", "Ozonic", "Resinous"
+}
+
+
+def _cache_get(cache: dict, key: str):
+    cached = cache.get(key.lower().strip())
+    if cached and time.time() - cached[0] < CACHE_TTL_SECONDS:
+        return cached[1]
+    return None
+
+
+def _cache_set(cache: dict, key: str, value):
+    cache[key.lower().strip()] = (time.time(), value)
+
+
+def _fetch_url(url: str, timeout: int = 8) -> str:
+    req = Request(url, headers={"User-Agent": USER_AGENT, "Accept-Language": "en-US,en;q=0.9"})
+    with urlopen(req, timeout=timeout) as res:
+        content_type = res.headers.get("content-type", "")
+        if "text" not in content_type and "html" not in content_type and "json" not in content_type:
+            return ""
+        return res.read(900_000).decode("utf-8", errors="ignore")
+
+
+async def fetch_url(url: str, timeout: int = 8) -> str:
     try:
-        # Step 1: Web search with very specific instructions
-        search_prompt = f"""You are a fragrance expert. Search the web for accurate information about: "{query}"
+        return await asyncio.to_thread(_fetch_url, url, timeout)
+    except (URLError, HTTPError, TimeoutError, ValueError, OSError) as e:
+        print(f"[WEB] Fetch failed for {url}: {e}")
+        return ""
 
-CRITICAL REQUIREMENTS:
-1. Find the EXACT brand name (not a guess)
-2. Find the EXACT fragrance name (not a guess)
-3. Find the ACTUAL notes used in this perfume (not generic guesses)
-4. Find the main accords/families
 
-If you cannot find reliable information, return null for that field.
+def _strip_tags(raw_html: str) -> str:
+    raw_html = re.sub(r"(?is)<(script|style|noscript).*?</\1>", " ", raw_html)
+    text = re.sub(r"(?s)<[^>]+>", " ", raw_html)
+    text = html.unescape(text)
+    return re.sub(r"\s+", " ", text).strip()
 
-Respond with ONLY valid JSON (no markdown):
+
+def _extract_meta(raw_html: str, url: str) -> dict:
+    title = ""
+    title_match = re.search(r"(?is)<title[^>]*>(.*?)</title>", raw_html)
+    if title_match:
+        title = html.unescape(re.sub(r"\s+", " ", title_match.group(1))).strip()
+
+    description = ""
+    desc_match = re.search(
+        r'(?is)<meta[^>]+(?:name|property)=["\'](?:description|og:description)["\'][^>]+content=["\'](.*?)["\']',
+        raw_html,
+    )
+    if desc_match:
+        description = html.unescape(desc_match.group(1)).strip()
+
+    image_url = None
+    image_match = re.search(r'(?is)<meta[^>]+property=["\']og:image["\'][^>]+content=["\'](.*?)["\']', raw_html)
+    if image_match:
+        image_url = html.unescape(image_match.group(1)).strip()
+
+    return {"url": url, "title": title, "description": description, "image_url": image_url}
+
+
+def _duckduckgo_links(raw_html: str) -> list[dict[str, str]]:
+    hits: list[dict[str, str]] = []
+    for match in re.finditer(r'(?is)<a[^>]+class="result__a"[^>]+href="([^"]+)"[^>]*>(.*?)</a>', raw_html):
+        href = html.unescape(match.group(1))
+        parsed = urlparse(href)
+        if "duckduckgo.com" in parsed.netloc and "uddg" in parse_qs(parsed.query):
+            href = unquote(parse_qs(parsed.query)["uddg"][0])
+        title = _strip_tags(match.group(2))
+        if href.startswith("http") and title:
+            hits.append({"title": title, "url": href})
+    return hits
+
+
+async def web_search(query: str, max_results: int = 6) -> list[dict[str, str]]:
+    url = f"https://duckduckgo.com/html/?q={quote_plus(query)}"
+    raw = await fetch_url(url)
+    hits = _duckduckgo_links(raw)
+    seen = set()
+    unique_hits = []
+    for hit in hits:
+        if hit["url"] not in seen:
+            unique_hits.append(hit)
+            seen.add(hit["url"])
+        if len(unique_hits) >= max_results:
+            break
+    return unique_hits
+
+
+def _rank_source(hit: dict[str, str]) -> int:
+    url = hit.get("url", "").lower()
+    title = hit.get("title", "").lower()
+    rank = 0
+    for idx, source in enumerate(FRAGRANCE_SOURCES):
+        if source in url or source in title:
+            rank += 20 - idx
+    if any(word in title for word in ["perfume", "fragrance", "cologne", "notes", "accords"]):
+        rank += 5
+    return rank
+
+
+def _normalize_list(value, limit: int = 8) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    cleaned = []
+    for item in value:
+        if not item:
+            continue
+        item = str(item).strip().strip(".,;:")
+        if item and item.lower() not in {"null", "none", "unknown", "n/a"} and item not in cleaned:
+            cleaned.append(item)
+        if len(cleaned) >= limit:
+            break
+    return cleaned
+
+
+def _normalize_notes(notes) -> dict[str, list[str]]:
+    if not isinstance(notes, dict):
+        return {"top": [], "middle": [], "base": []}
+    return {
+        "top": _normalize_list(notes.get("top") or notes.get("top_notes"), 8),
+        "middle": _normalize_list(notes.get("middle") or notes.get("heart") or notes.get("heart_notes"), 8),
+        "base": _normalize_list(notes.get("base") or notes.get("base_notes"), 8),
+    }
+
+
+def _parse_price(value) -> Optional[float]:
+    if value is None:
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    match = re.search(r"\d+(?:\.\d+)?", str(value))
+    return float(match.group(0)) if match else None
+
+
+def _details_from_data(data: dict, source: str) -> Optional[FragranceDetails]:
+    if not data or not data.get("found", True):
+        return None
+    brand = str(data.get("brand") or "").strip()
+    name = str(data.get("name") or "").strip()
+    accords = [a.title() for a in _normalize_list(data.get("accords"), 8)]
+    accords = [a for a in accords if a in VALID_ACCORDS]
+    notes = _normalize_notes(data.get("notes"))
+    if not brand or not name:
+        return None
+    if not accords:
+        accords = infer_accords_from_notes(notes, f"{brand} {name} {data.get('description', '')}")
+    if not validate_fragrance_data(brand, name, accords, notes):
+        return None
+    return FragranceDetails(
+        brand=brand,
+        name=name,
+        accords=accords[:8],
+        notes=notes,
+        image_url=data.get("image_url"),
+        source=source,
+    )
+
+
+def infer_accords_from_notes(notes: dict[str, list[str]], text: str = "") -> list[str]:
+    haystack = " ".join(notes.get("top", []) + notes.get("middle", []) + notes.get("base", []) + [text]).lower()
+    accord_keywords = {
+        "Woody": ["wood", "cedar", "sandalwood", "vetiver", "guaiac"],
+        "Oud": ["oud", "agarwood"],
+        "Floral": ["rose", "jasmine", "iris", "violet", "tuberose", "flower", "ylang"],
+        "Fresh": ["fresh", "clean", "linen"],
+        "Citrus": ["bergamot", "lemon", "orange", "grapefruit", "lime", "mandarin", "citron"],
+        "Sweet": ["vanilla", "tonka", "caramel", "honey", "sugar", "praline"],
+        "Spicy": ["pepper", "cinnamon", "cardamom", "clove", "saffron", "nutmeg"],
+        "Fruity": ["apple", "peach", "pear", "berry", "plum", "pineapple", "fruit"],
+        "Amber": ["amber", "labdanum", "benzoin"],
+        "Musky": ["musk", "ambroxan"],
+        "Gourmand": ["coffee", "chocolate", "almond", "cacao", "milk"],
+        "Leather": ["leather", "suede"],
+        "Smoky": ["smoke", "incense", "birch", "tobacco"],
+        "Green": ["green", "galbanum", "grass", "fig leaf", "mint"],
+        "Aquatic": ["marine", "sea", "water", "aquatic", "calone"],
+        "Powdery": ["powder", "orris", "heliotrope"],
+        "Aromatic": ["lavender", "sage", "rosemary", "basil", "thyme"],
+        "Earthy": ["patchouli", "moss", "soil", "earth"],
+    }
+    accords = [accord for accord, keys in accord_keywords.items() if any(key in haystack for key in keys)]
+    return accords[:8] or ["Fresh"]
+
+
+def heuristic_extract(query: str, source_docs: list[dict]) -> Optional[FragranceDetails]:
+    merged_text = " ".join(
+        f"{doc.get('title', '')}. {doc.get('description', '')}. {doc.get('text', '')[:5000]}"
+        for doc in source_docs
+    )
+    notes = {"top": [], "middle": [], "base": []}
+    patterns = {
+        "top": r"top notes? (?:are|:|include)? ([^.]+)",
+        "middle": r"(?:middle|heart) notes? (?:are|:|include)? ([^.]+)",
+        "base": r"base notes? (?:are|:|include)? ([^.]+)",
+    }
+    for layer, pattern in patterns.items():
+        match = re.search(pattern, merged_text, re.I)
+        if match:
+            notes[layer] = _normalize_list(re.split(r",| and |;", match.group(1)), 8)
+
+    best = source_docs[0] if source_docs else {}
+    title = re.sub(r"\s*[-|].*$", "", best.get("title", "")).strip()
+    title = re.sub(r"\b(perfume|fragrance|cologne|reviews?|notes?)\b", "", title, flags=re.I).strip(" -|")
+    words = title.split()
+    fallback = search_fallback(query)
+    brand = fallback.brand
+    name = fallback.name
+    if len(words) >= 2:
+        brand = words[0]
+        name = " ".join(words[1:])
+    accords = infer_accords_from_notes(notes, merged_text)
+    return FragranceDetails(
+        brand=brand,
+        name=name,
+        accords=accords,
+        notes=notes,
+        image_url=best.get("image_url"),
+        source="web_scrape",
+    )
+
+
+def extract_fragrance_with_groq(query: str, source_docs: list[dict]) -> Optional[FragranceDetails]:
+    if not groq_client or not source_docs:
+        return None
+    evidence = []
+    for doc in source_docs[:4]:
+        evidence.append({
+            "url": doc.get("url"),
+            "title": doc.get("title"),
+            "description": doc.get("description"),
+            "text": doc.get("text", "")[:5000],
+        })
+    prompt = f"""Extract fragrance data from these live web search/scrape results for query: "{query}".
+
+Use only the supplied evidence. Do not invent notes, accords, brand, or name.
+If evidence is insufficient, set found to false.
+
+Evidence JSON:
+{json.dumps(evidence, ensure_ascii=False)}
+
+Return ONLY valid JSON:
 {{
-  "brand": "Exact Brand Name or null",
-  "name": "Exact Fragrance Name or null",
-  "accords": ["Accord1", "Accord2"] or [],
-  "notes": {{
-    "top": ["Actual Note 1", "Actual Note 2"] or [],
-    "middle": ["Actual Note 1"] or [],
-    "base": ["Actual Note 1", "Actual Note 2"] or []
-  }},
-  "description": "Brief description if found",
-  "found": true or false
-}}
-
-Only return found: true if you found reliable information from fragrance websites, reviews, or official sources."""
-
+  "found": true,
+  "brand": "Exact brand",
+  "name": "Exact fragrance name",
+  "accords": ["Woody", "Amber"],
+  "notes": {{"top": [], "middle": [], "base": []}},
+  "image_url": "https://... or null"
+}}"""
+    try:
         response = groq_client.chat.completions.create(
             model="llama-3.3-70b-versatile",
-            messages=[{"role": "user", "content": search_prompt}],
-            max_tokens=600,
-            temperature=0.1,
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=700,
+            temperature=0,
         )
-        
         raw = response.choices[0].message.content.strip()
-        
-        # Strip markdown
         if raw.startswith("```"):
             raw = raw.split("```")[1]
             if raw.startswith("json"):
                 raw = raw[4:]
-        raw = raw.strip()
-        
-        data = json.loads(raw)
-        
-        # Check if search was successful
-        if not data.get("found", False):
-            print(f"Web search found no reliable information for '{query}'")
-            return None
-        
-        # Validate we got meaningful data
-        brand = data.get("brand")
-        name = data.get("name")
-        
-        if not brand or not name or brand == "null" or name == "null":
-            print(f"Web search returned incomplete data")
-            return None
-        
-        accords = data.get("accords", [])
-        if not isinstance(accords, list):
-            accords = []
-        
-        # If we got empty accords, try to infer from description or name
-        if not accords or len(accords) == 0:
-            description = data.get("description", "")
-            infer_prompt = f"""Based on this fragrance information:
-Brand: {brand}
-Name: {name}
-Description: {description if description else "No description"}
+        return _details_from_data(json.loads(raw.strip()), "web_search")
+    except Exception as e:
+        print(f"[WEB] Groq extraction failed: {e}")
+        return None
 
-Infer 4-6 likely main accords. Respond with ONLY a JSON array:
-["Accord1", "Accord2", "Accord3", "Accord4"]
 
-Choose from: Woody, Spicy, Fresh, Floral, Citrus, Sweet, Musky, Earthy, Smoky, Leather, Oriental, Aquatic, Gourmand, Powdery, Green, Fruity, Aromatic, Amber, Vanilla, Oud"""
-            
-            infer_response = groq_client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=[{"role": "user", "content": infer_prompt}],
-                max_tokens=100,
-                temperature=0.2,
-            )
-            
-            infer_raw = infer_response.choices[0].message.content.strip()
-            if infer_raw.startswith("```"):
-                infer_raw = infer_raw.split("```")[1]
-                if infer_raw.startswith("json"):
-                    infer_raw = infer_raw[4:]
-            infer_raw = infer_raw.strip()
-            
-            try:
-                inferred_accords = json.loads(infer_raw)
-                accords = inferred_accords[:8]
-            except:
-                accords = ["Fresh", "Floral"]  # Safe default
-        
-        # Ensure notes structure is valid
-        notes = data.get("notes", {})
-        if not isinstance(notes, dict):
-            notes = {"top": [], "middle": [], "base": []}
-        else:
-            notes = {
-                "top": [n for n in (notes.get("top") or []) if n and n != "null"][:5],
-                "middle": [n for n in (notes.get("middle") or []) if n and n != "null"][:5],
-                "base": [n for n in (notes.get("base") or []) if n and n != "null"][:5],
-            }
-        
-        return FragranceDetails(
-            brand=brand,
-            name=name,
-            accords=accords[:8],
-            notes=notes,
-            image_url=data.get("image_url"),
-            source="web_search",
-        )
-        
+async def search_via_web(query: str) -> Optional[FragranceDetails]:
+    """Tier 2: Run real free web search, scrape likely fragrance pages, then extract."""
+    cached = _cache_get(SEARCH_CACHE, query)
+    if cached:
+        return cached
+
+    try:
+        search_query = f'{query} perfume fragrance notes accords'
+        hits = await web_search(search_query, max_results=8)
+        hits = sorted(hits, key=_rank_source, reverse=True)[:5]
+        if not hits:
+            return None
+
+        pages = await asyncio.gather(*(fetch_url(hit["url"]) for hit in hits[:4]))
+        source_docs = []
+        for hit, raw in zip(hits, pages):
+            meta = _extract_meta(raw, hit["url"]) if raw else {"url": hit["url"], "title": hit["title"], "description": ""}
+            meta["title"] = meta.get("title") or hit["title"]
+            meta["text"] = _strip_tags(raw)[:12000] if raw else hit["title"]
+            source_docs.append(meta)
+
+        details = extract_fragrance_with_groq(query, source_docs) or heuristic_extract(query, source_docs)
+        if details:
+            _cache_set(SEARCH_CACHE, query, details)
+        return details
     except Exception as e:
         print(f"Web search error: {e}")
         return None
@@ -516,93 +714,101 @@ def get_verdict(score: int) -> str:
         return "Stop. Your wallet will thank you later."
 
 
-CLONE_DB = {
-    "woody": [
-        {"brand": "Zara", "name": "Vibrant Leather", "price": 18, "reason": "Dry woody base at a fraction of the cost."},
-        {"brand": "Armaf", "name": "Niche Oud", "price": 40, "reason": "Dark leather-oud accord, punches above its weight."},
-        {"brand": "Lattafa", "name": "Oud Mood", "price": 25, "reason": "Deep earthy oud character for the price."},
-    ],
-    "spicy": [
-        {"brand": "Armaf", "name": "Club de Nuit Intense", "price": 35, "reason": "Legendary spicy-smoky clone."},
-        {"brand": "Al Haramain", "name": "L'Aventure", "price": 30, "reason": "Spicy-woody with excellent projection."},
-        {"brand": "Rasasi", "name": "Hawas", "price": 28, "reason": "Fresh-spicy aquatic, crowd-pleaser."},
-    ],
-    "sweet": [
-        {"brand": "Dossier", "name": "Ambery Saffron", "price": 29, "reason": "Warm gourmand without the markup."},
-        {"brand": "Kayali", "name": "Vanilla 28", "price": 45, "reason": "Rich vanilla gourmand at an accessible price."},
-        {"brand": "Zara", "name": "Red Vanilla", "price": 16, "reason": "Sweet vanilla with surprising longevity."},
-    ],
-    "fresh": [
-        {"brand": "Nautica", "name": "Voyage", "price": 22, "reason": "Clean aquatic freshness."},
-        {"brand": "Davidoff", "name": "Cool Water", "price": 25, "reason": "Classic fresh aquatic, timeless."},
-        {"brand": "Nautica", "name": "Blue", "price": 20, "reason": "Fresh aquatic, a crowd-pleasing safe bet."},
-    ],
-    "floral": [
-        {"brand": "Zara", "name": "Rose Gourmand", "price": 16, "reason": "Soft floral with surprising longevity."},
-        {"brand": "Zara", "name": "Orchid", "price": 18, "reason": "Elegant floral at drugstore prices."},
-        {"brand": "Ariana Grande", "name": "Cloud", "price": 35, "reason": "Sweet floral gourmand, viral for a reason."},
-    ],
-    "oriental": [
-        {"brand": "Lattafa", "name": "Khamrah", "price": 28, "reason": "Rich oriental depth at an unbeatable price."},
-        {"brand": "Rasasi", "name": "La Yuqawam", "price": 32, "reason": "Spicy oriental with leather undertones."},
-        {"brand": "Al Haramain", "name": "Amber Oud", "price": 35, "reason": "Classic oriental-oud blend."},
-    ],
-    "leather": [
-        {"brand": "Armaf", "name": "Niche Oud", "price": 40, "reason": "Dark leather-oud accord, punches above its weight."},
-        {"brand": "Zara", "name": "Vibrant Leather", "price": 18, "reason": "Dry leather base, excellent value."},
-        {"brand": "Montblanc", "name": "Legend", "price": 45, "reason": "Refined leather-fougere, widely available."},
-    ],
-    "citrus": [
-        {"brand": "Prada", "name": "Luna Rossa Carbon", "price": 55, "reason": "Crisp citrus-metallic, widely available on discount."},
-        {"brand": "Versace", "name": "Man Eau Fraiche", "price": 35, "reason": "Bright citrus-aquatic, summer staple."},
-        {"brand": "Dolce & Gabbana", "name": "Light Blue", "price": 45, "reason": "Zesty citrus, universally loved."},
-    ],
-    "musky": [
-        {"brand": "Zara", "name": "Femme", "price": 14, "reason": "Clean musky base, great longevity."},
-        {"brand": "The Body Shop", "name": "White Musk", "price": 20, "reason": "Soft clean musk, iconic."},
-        {"brand": "Narciso Rodriguez", "name": "For Her", "price": 60, "reason": "Elegant musk, worth the splurge."},
-    ],
-    "gourmand": [
-        {"brand": "Kayali", "name": "Vanilla 28", "price": 45, "reason": "Rich vanilla gourmand at an accessible price."},
-        {"brand": "Prada", "name": "Candy", "price": 55, "reason": "Caramel gourmand, addictive."},
-        {"brand": "Ariana Grande", "name": "Cloud", "price": 35, "reason": "Sweet gourmand, viral sensation."},
-    ],
-    "aquatic": [
-        {"brand": "Nautica", "name": "Blue", "price": 20, "reason": "Fresh aquatic, a crowd-pleasing safe bet."},
-        {"brand": "Davidoff", "name": "Cool Water", "price": 25, "reason": "The original aquatic, still great."},
-        {"brand": "Issey Miyake", "name": "L'Eau d'Issey", "price": 50, "reason": "Refined aquatic-floral."},
-    ],
-    "earthy": [
-        {"brand": "Lattafa", "name": "Oud Mood", "price": 25, "reason": "Deep earthy oud character for the price."},
-        {"brand": "Encre Noire", "name": "Lalique", "price": 35, "reason": "Dark vetiver-cypress, unique."},
-        {"brand": "Terre d'Hermes", "name": "Hermes", "price": 70, "reason": "Earthy-citrus, worth saving for."},
-    ],
-    "fruity": [
-        {"brand": "Armaf", "name": "Club de Nuit Intense", "price": 35, "reason": "Fruity-smoky powerhouse."},
-        {"brand": "Zara", "name": "Apple Juice", "price": 16, "reason": "Fresh fruity, fun and affordable."},
-        {"brand": "DKNY", "name": "Be Delicious", "price": 40, "reason": "Crisp apple, iconic bottle."},
-    ],
-    "aromatic": [
-        {"brand": "Paco Rabanne", "name": "Invictus", "price": 50, "reason": "Aromatic-aquatic, sporty."},
-        {"brand": "Versace", "name": "Eros", "price": 55, "reason": "Aromatic-mint, clubbing staple."},
-        {"brand": "Azzaro", "name": "Wanted", "price": 45, "reason": "Aromatic-spicy, versatile."},
-    ],
-    "green": [
-        {"brand": "Hermes", "name": "Un Jardin", "price": 70, "reason": "Green-fresh, garden vibes."},
-        {"brand": "Bvlgari", "name": "Eau Parfumee au The Vert", "price": 50, "reason": "Green tea, minimalist."},
-        {"brand": "Zara", "name": "Green Storm", "price": 18, "reason": "Fresh green, budget-friendly."},
-    ],
-    "powdery": [
-        {"brand": "Prada", "name": "Infusion d'Iris", "price": 65, "reason": "Powdery-iris, elegant."},
-        {"brand": "Guerlain", "name": "L'Homme Ideal", "price": 60, "reason": "Powdery-almond, sophisticated."},
-        {"brand": "Zara", "name": "Iris", "price": 16, "reason": "Soft powdery, surprising quality."},
-    ],
-    "smoky": [
-        {"brand": "Armaf", "name": "Club de Nuit Intense", "price": 35, "reason": "Smoky-fruity, legendary clone."},
-        {"brand": "Lalique", "name": "Encre Noire", "price": 35, "reason": "Dark smoky vetiver."},
-        {"brand": "Tom Ford", "name": "Ombre Leather", "price": 85, "reason": "Smoky leather, worth it."},
-    ],
-}
+def _clone_from_hit(hit: dict[str, str], target: Fragrance) -> Optional[CloneSuggestion]:
+    title = re.sub(r"\s*[-|].*$", "", hit.get("title", "")).strip()
+    title = re.sub(r"\b(best|top|clone|clones|dupe|dupes|alternative|alternatives|perfume|fragrance|cologne|for)\b", "", title, flags=re.I)
+    title = re.sub(r"\s+", " ", title).strip(" :,-")
+    if not title or target.name.lower() in title.lower():
+        return None
+    words = title.split()
+    brand = words[0] if words else "Alternative"
+    name = " ".join(words[1:]) if len(words) > 1 else title
+    return CloneSuggestion(
+        brand=brand,
+        name=name,
+        currency="USD",
+        reason=f"Live web result surfaced as a budget clone or alternative for {target.brand} {target.name}.",
+        url=hit.get("url"),
+        source=urlparse(hit.get("url", "")).netloc,
+    )
+
+
+def extract_clones_with_groq(target: Fragrance, hits: list[dict[str, str]]) -> list[CloneSuggestion]:
+    if not groq_client or not hits:
+        return []
+    prompt = f"""From these live web search results, pick up to 3 budget-friendly clone, dupe, or alternative fragrances for {target.brand} {target.name}.
+
+Use only the provided search results. Prefer product/review pages with concrete fragrance names and URLs. Do not invent products.
+
+Search results:
+{json.dumps(hits[:8], ensure_ascii=False)}
+
+Return ONLY valid JSON:
+[
+  {{"brand": "Brand", "name": "Fragrance", "price": 29.99, "currency": "USD", "reason": "Why it is relevant", "url": "https://..."}}
+]
+If price is unknown, use null."""
+    try:
+        response = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=650,
+            temperature=0,
+        )
+        raw = response.choices[0].message.content.strip()
+        if raw.startswith("```"):
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+        data = json.loads(raw.strip())
+        clones = []
+        for item in data if isinstance(data, list) else []:
+            url = item.get("url")
+            if not url:
+                continue
+            clones.append(CloneSuggestion(
+                brand=str(item.get("brand") or "Alternative").strip(),
+                name=str(item.get("name") or "Budget Alternative").strip(),
+                price=_parse_price(item.get("price")),
+                currency=str(item.get("currency") or "USD").strip(),
+                reason=str(item.get("reason") or "Found through live clone search.").strip(),
+                url=url,
+                source=urlparse(url).netloc,
+            ))
+        return clones[:3]
+    except Exception as e:
+        print(f"[CLONES] Groq extraction failed: {e}")
+        return []
+
+
+async def find_budget_clones(target: Fragrance) -> list[CloneSuggestion]:
+    cache_key = f"{target.brand} {target.name}"
+    cached = _cache_get(CLONE_CACHE, cache_key)
+    if cached:
+        return cached
+
+    query = f'"{target.brand} {target.name}" perfume clone dupe alternative budget'
+    hits = await web_search(query, max_results=10)
+    hits = [
+        hit for hit in hits
+        if any(word in hit["title"].lower() for word in ["clone", "dupe", "alternative", "similar", "inspired"])
+    ] or hits
+
+    clones = extract_clones_with_groq(target, hits)
+    if len(clones) < 3:
+        seen_urls = {clone.url for clone in clones}
+        for hit in hits:
+            if hit["url"] in seen_urls:
+                continue
+            clone = _clone_from_hit(hit, target)
+            if clone:
+                clones.append(clone)
+                seen_urls.add(hit["url"])
+            if len(clones) >= 3:
+                break
+
+    _cache_set(CLONE_CACHE, cache_key, clones[:3])
+    return clones[:3]
 
 # ── Routes ────────────────────────────────────────────────────────────────────
 
@@ -612,7 +818,7 @@ def root():
         "status": "ok",
         "service": "Scent-inel Risk Engine v2",
         "groq_enabled": groq_client is not None,
-        "search_tiers": ["groq_direct", "web_search", "fallback"],
+        "search_tiers": ["web_search_scrape", "groq_direct", "fallback"],
     }
 
 @app.get("/currencies")
@@ -631,8 +837,8 @@ def convert_currency(req: ConvertRequest):
 async def search_fragrance(req: SearchRequest):
     """
     Multi-tier fragrance search:
-    1. Groq AI direct lookup (fast, works for popular fragrances)
-    2. Web search + AI extraction (for obscure/new fragrances)
+    1. Real web search + simple scraping + optional AI extraction
+    2. Groq direct lookup if live sources are unavailable
     3. Manual fallback (parse query string + infer accords)
     """
     if not req.query.strip():
@@ -640,21 +846,21 @@ async def search_fragrance(req: SearchRequest):
 
     print(f"[SEARCH] Query: {req.query}")
 
-    # Tier 1: Groq AI direct lookup
-    details = await asyncio.to_thread(search_via_groq, req.query)
-    if details:
-        print(f"[SEARCH] ✓ Found via Groq (Tier 1)")
-        return details
-
-    # Tier 2: Web search + AI extraction
-    print(f"[SEARCH] Groq failed, trying web search (Tier 2)...")
+    # Tier 1: Web search + scraping
+    print(f"[SEARCH] Trying live web search/scrape (Tier 1)...")
     details = await search_via_web(req.query)
     if details:
-        print(f"[SEARCH] ✓ Found via web search (Tier 2)")
+        print(f"[SEARCH] ✓ Found via web search/scrape (Tier 1)")
+        return details
+
+    # Tier 2: Groq AI direct lookup
+    details = await asyncio.to_thread(search_via_groq, req.query)
+    if details:
+        print(f"[SEARCH] ✓ Found via Groq (Tier 2)")
         return details
 
     # Tier 3: Manual fallback
-    print(f"[SEARCH] Web search failed, using fallback (Tier 3)")
+    print(f"[SEARCH] Live and AI lookup failed, using fallback (Tier 3)")
     details = search_fallback(req.query)
     return details
 
@@ -664,50 +870,7 @@ async def calculate_risk(req: RiskRequest):
     score, breakdown = calculate_risk_score(req.target_perfume, req.user_profile)
     verdict = get_verdict(score)
 
-    # Clone suggestions - ALWAYS provide 3 options
-    clones = []
-    
-    # Get clones based on dominant accords (up to 3 accords)
-    target_accords = [a.lower() for a in (req.target_perfume.accords or [])][:3]
-    
-    # Collect clones from matching accords
-    seen_clones = set()
-    for accord in target_accords:
-        if accord in CLONE_DB:
-            for clone_data in CLONE_DB[accord]:
-                clone_key = f"{clone_data['brand']}-{clone_data['name']}"
-                if clone_key not in seen_clones:
-                    clones.append(CloneSuggestion(**clone_data, currency="USD"))
-                    seen_clones.add(clone_key)
-                    if len(clones) >= 3:
-                        break
-        if len(clones) >= 3:
-            break
-    
-    # If we don't have 3 clones yet, add from "fresh" as default
-    if len(clones) < 3 and "fresh" in CLONE_DB:
-        for clone_data in CLONE_DB["fresh"]:
-            clone_key = f"{clone_data['brand']}-{clone_data['name']}"
-            if clone_key not in seen_clones:
-                clones.append(CloneSuggestion(**clone_data, currency="USD"))
-                seen_clones.add(clone_key)
-                if len(clones) >= 3:
-                    break
-    
-    # Ensure we always have at least 3 clones
-    if len(clones) < 3:
-        # Add from any available accord
-        for accord, clone_list in CLONE_DB.items():
-            if isinstance(clone_list, list):
-                for clone_data in clone_list:
-                    clone_key = f"{clone_data['brand']}-{clone_data['name']}"
-                if clone_key not in seen_clones:
-                    clones.append(CloneSuggestion(**clone_data, currency="USD"))
-                    seen_clones.add(clone_key)
-                    if len(clones) >= 3:
-                        break
-            if len(clones) >= 3:
-                break
+    clones = await find_budget_clones(req.target_perfume)
 
     # AI insight
     ai_insight = None

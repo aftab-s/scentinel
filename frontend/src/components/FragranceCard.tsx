@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Heart, Frown } from 'lucide-react';
+import { X } from 'lucide-react';
 import type { Fragrance } from '../types';
 
 interface Props {

@@ -184,7 +184,7 @@ export default function AddFragranceModal({ open, type, onClose, onAdd, currency
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-[9px] px-2 py-1 rounded-full uppercase tracking-wider font-semibold bg-[#E8CFC1]/30 text-[#4A3B32]">
                         {source === 'groq' && '✓ AI Database'}
-                        {source === 'web_search' && '🌐 Web Search'}
+                        {(source === 'web_search' || source === 'web_scrape') && '🌐 Web Search'}
                         {source === 'fallback' && '⚠️ Manual Parse'}
                       </span>
                       {source === 'fallback' && (

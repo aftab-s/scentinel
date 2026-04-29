@@ -300,15 +300,33 @@ export default function RiskEngine({ profile, currency }: Props) {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 1.5 + idx * 0.1 }}
                           >
-                            <div className="flex justify-between items-start mb-1">
-                              <p className="text-sm text-[#2C241B] font-bold serif">{clone.brand} — {clone.name}</p>
-                              <p className="text-xs font-semibold text-[#D2A795] whitespace-nowrap ml-2">
-                                ${clone.price} {clone.currency}
-                              </p>
+                            <div className="flex justify-between items-start mb-1 gap-3">
+                              {clone.url ? (
+                                <a
+                                  href={clone.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-sm text-[#2C241B] font-bold serif hover:text-[#D2A795] transition-colors"
+                                >
+                                  {clone.brand} — {clone.name}
+                                </a>
+                              ) : (
+                                <p className="text-sm text-[#2C241B] font-bold serif">{clone.brand} — {clone.name}</p>
+                              )}
+                              {clone.price != null && (
+                                <p className="text-xs font-semibold text-[#D2A795] whitespace-nowrap">
+                                  ${clone.price} {clone.currency}
+                                </p>
+                              )}
                             </div>
                             <p className="text-[11px] text-[#4A3B32] sans-serif leading-relaxed">
                               {clone.reason}
                             </p>
+                            {clone.source && (
+                              <p className="text-[10px] text-[#4A3B32]/50 sans-serif mt-2 truncate">
+                                {clone.source}
+                              </p>
+                            )}
                           </motion.div>
                         ))}
                       </div>

@@ -36,7 +36,9 @@ export interface AccordScore {
 export interface CloneSuggestion {
   brand: string;
   name: string;
-  price: number;
+  price?: number | null;
   currency: string;
   reason: string;
+  url?: string;
+  source?: string;
 }
