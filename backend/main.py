@@ -272,6 +272,24 @@ FRAGRANCE_SOURCES = [
     "wikiparfum.com",
     "official",
 ]
+PREFERRED_CLONE_HOUSE_KEYWORDS = {
+    "uae": [
+        "lattafa", "maison alhambra", "armaf", "afnan", "rasasi", "ajmal",
+        "al haramain", "paris corner", "fragrance world", "khadlaj",
+        "ahmed al maghribi", "swiss arabian", "albait", "emir",
+        "pendora", "ministry of oud",
+    ],
+    "india": [
+        "muzna", "scentedelic", "scent-rix", "scent rix", "projekt alternative",
+        "al maham", "arabian aroma", "em5", "perfumery", "aafiya", "blanko", "blabliblu",
+        "beardo", "wildstone", "fogg", "set wet", "nivea", "park avenue", "axe", "bellavita",
+    ],
+}
+PREFERRED_CLONE_TERMS = {
+    term
+    for terms in PREFERRED_CLONE_HOUSE_KEYWORDS.values()
+    for term in terms
+}
 VALID_ACCORDS = {
     "Woody", "Spicy", "Fresh", "Floral", "Citrus", "Sweet", "Musky",
     "Earthy", "Smoky", "Leather", "Oriental", "Aquatic", "Gourmand",
@@ -733,12 +751,54 @@ def _clone_from_hit(hit: dict[str, str], target: Fragrance) -> Optional[CloneSug
     )
 
 
+def _clone_hit_score(hit: dict[str, str], target: Fragrance) -> int:
+    haystack = f"{hit.get('title', '')} {hit.get('url', '')}".lower()
+    score = 0
+    if target.name.lower() in haystack:
+        score += 20
+    if target.brand.lower() in haystack:
+        score += 10
+    if any(word in haystack for word in ["clone", "dupe", "inspired", "alternative", "similar"]):
+        score += 25
+    if any(word in haystack for word in ["budget", "cheap", "affordable", "value", "under", "best"]):
+        score += 15
+    if any(term in haystack for term in PREFERRED_CLONE_TERMS):
+        score += 35
+    if any(word in haystack for word in ["india", "indian", ".in", "uae", "dubai", "emirates"]):
+        score += 20
+    return score
+
+
+def _clone_suggestion_score(clone: CloneSuggestion) -> int:
+    haystack = f"{clone.brand} {clone.name} {clone.reason} {clone.url or ''} {clone.source or ''}".lower()
+    score = 0
+    if any(term in haystack for term in PREFERRED_CLONE_TERMS):
+        score += 45
+    if any(word in haystack for word in ["india", "indian", ".in", "uae", "dubai", "emirates"]):
+        score += 25
+    if any(word in haystack for word in ["clone", "dupe", "inspired", "alternative", "similar"]):
+        score += 20
+    if clone.price is not None:
+        if clone.price <= 35:
+            score += 20
+        elif clone.price <= 60:
+            score += 12
+        elif clone.price <= 100:
+            score += 6
+    return score
+
+
 def extract_clones_with_groq(target: Fragrance, hits: list[dict[str, str]]) -> list[CloneSuggestion]:
     if not groq_client or not hits:
         return []
     prompt = f"""From these live web search results, pick up to 3 budget-friendly clone, dupe, or alternative fragrances for {target.brand} {target.name}.
 
 Use only the provided search results. Prefer product/review pages with concrete fragrance names and URLs. Do not invent products.
+Ranking priority:
+1. Best clone match to the target fragrance.
+2. Most budget-friendly/value-for-money option.
+3. Prefer Indian and UAE perfume houses when evidence supports them, especially Lattafa, Maison Alhambra, Armaf, Afnan, Rasasi, Ajmal, Al Haramain, Paris Corner, Fragrance World, Khadlaj, Ahmed Al Maghribi, Swiss Arabian, Albait, Muzna, Scentedelic, Scent-Rix, Projekt Alternative, Al Maham, Arabian Aroma, and EM5.
+4. If a cheaper Indian/UAE clone and a costly designer alternative are both available, choose the Indian/UAE clone unless the evidence says it is a poor match.
 
 Search results:
 {json.dumps(hits[:8], ensure_ascii=False)}
@@ -775,7 +835,7 @@ If price is unknown, use null."""
                 url=url,
                 source=urlparse(url).netloc,
             ))
-        return clones[:3]
+        return sorted(clones, key=_clone_suggestion_score, reverse=True)[:3]
     except Exception as e:
         print(f"[CLONES] Groq extraction failed: {e}")
         return []
@@ -787,12 +847,28 @@ async def find_budget_clones(target: Fragrance) -> list[CloneSuggestion]:
     if cached:
         return cached
 
-    query = f'"{target.brand} {target.name}" perfume clone dupe alternative budget'
-    hits = await web_search(query, max_results=10)
+    target_label = f"{target.brand} {target.name}"
+    queries = [
+        f'"{target_label}" perfume clone dupe alternative budget',
+        f'"{target_label}" clone Lattafa Armaf Afnan Rasasi Ajmal Al Haramain',
+        f'"{target_label}" clone Maison Alhambra Paris Corner Fragrance World Khadlaj Albait',
+        f'"{target_label}" clone India Muzna Scentedelic Scent-Rix Al Maham Arabian Aroma EM5',
+        f'"{target_label}" inspired expression affordable UAE India',
+    ]
+    result_sets = await asyncio.gather(*(web_search(query, max_results=8) for query in queries))
+    hits = []
+    seen_hit_urls = set()
+    for result_set in result_sets:
+        for hit in result_set:
+            if hit["url"] not in seen_hit_urls:
+                hits.append(hit)
+                seen_hit_urls.add(hit["url"])
+
     hits = [
         hit for hit in hits
         if any(word in hit["title"].lower() for word in ["clone", "dupe", "alternative", "similar", "inspired"])
     ] or hits
+    hits = sorted(hits, key=lambda hit: _clone_hit_score(hit, target), reverse=True)
 
     clones = extract_clones_with_groq(target, hits)
     if len(clones) < 3:
@@ -807,8 +883,9 @@ async def find_budget_clones(target: Fragrance) -> list[CloneSuggestion]:
             if len(clones) >= 3:
                 break
 
-    _cache_set(CLONE_CACHE, cache_key, clones[:3])
-    return clones[:3]
+    clones = sorted(clones, key=_clone_suggestion_score, reverse=True)[:3]
+    _cache_set(CLONE_CACHE, cache_key, clones)
+    return clones
 
 # ── Routes ────────────────────────────────────────────────────────────────────
 
