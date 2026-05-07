@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Search, Loader2, Sparkles, Droplets } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import type { Fragrance } from '../types';
 import { searchFragrance } from '../api';
 
@@ -104,29 +104,27 @@ export default function AddFragranceModal({ open, type, onClose, onAdd, currency
             transition={{ duration: 0.4, ease: 'easeOut' }}
           >
             <div
-              className="nothing-glass border-black/5 p-8 w-full max-w-lg relative shadow-2xl pointer-events-auto"
+              className="nothing-glass border-black/10 p-8 w-full max-w-lg relative shadow-[0_32px_80px_rgba(0,0,0,0.1)] pointer-events-auto"
               onClick={e => e.stopPropagation()}
             >
               {/* Header */}
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-md flex items-center justify-center ${isLove ? 'bg-green-500/5' : 'bg-red-500/5'}`}>
-                    <Sparkles size={18} className={isLove ? 'text-green-600' : 'text-red-600'} />
-                  </div>
+                  <div className={`w-1.5 h-1.5 rounded-full ${isLove ? 'bg-green-500' : 'bg-red-500'}`} />
                   <div>
                     <h2 className="dot-matrix text-xl font-bold text-black uppercase tracking-tight">
-                      ADD_NEW_ANCHOR
+                      Add_To_Collection
                     </h2>
-                    <span className="dot-matrix text-[9px] font-bold text-black/30 tracking-[0.2em]">
-                      TARGET_TYPE: {type.toUpperCase()}
+                    <span className="dot-matrix text-[9px] font-bold text-black/30 tracking-[0.2em] uppercase">
+                      Specify preferences
                     </span>
                   </div>
                 </div>
-                <button
+                <button 
                   onClick={handleClose}
-                  className="w-10 h-10 rounded-lg nothing-glass flex items-center justify-center hover:bg-black hover:text-white transition-all border-black/5"
+                  className="dot-matrix text-[10px] font-bold text-black/40 hover:text-black transition-colors uppercase"
                 >
-                  <X size={16} />
+                  Close
                 </button>
               </div>
 
@@ -134,10 +132,9 @@ export default function AddFragranceModal({ open, type, onClose, onAdd, currency
               <div className="mb-8">
                 <div className="flex gap-3">
                   <div className="relative flex-1">
-                    <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-black/20" />
                     <input
-                      className="w-full bg-black/5 border-none rounded-xl pl-12 pr-4 py-4 dot-matrix text-sm text-black placeholder-black/20 focus:ring-2 focus:ring-black/5 transition-all"
-                      placeholder="Molecular_Search..."
+                      className="w-full bg-black/[0.03] border border-black/10 rounded-xl px-5 py-4 dot-matrix text-sm text-black placeholder-black/40 focus:ring-2 focus:ring-black/10 transition-all outline-none"
+                      placeholder="Fragrance name..."
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && handleSearch()}
@@ -146,9 +143,9 @@ export default function AddFragranceModal({ open, type, onClose, onAdd, currency
                   <button
                     onClick={handleSearch}
                     disabled={!searchQuery.trim() || searching}
-                    className="px-6 py-4 rounded-xl dot-matrix text-[10px] tracking-[0.2em] font-bold transition-all bg-black text-white hover:bg-red-600 disabled:opacity-20"
+                    className="px-6 py-4 rounded-xl dot-matrix text-[10px] tracking-[0.2em] font-bold transition-all bg-black text-white hover:bg-red-600 disabled:bg-black/40 disabled:text-white/40 active:scale-[0.98] uppercase"
                   >
-                    {searching ? <Loader2 size={16} className="animate-spin" /> : 'INIT'}
+                    {searching ? <Loader2 size={16} className="animate-spin" /> : 'Search'}
                   </button>
                 </div>
                 {error && (
@@ -178,14 +175,14 @@ export default function AddFragranceModal({ open, type, onClose, onAdd, currency
                         {imageUrl ? (
                           <img src={imageUrl} alt={name} className="w-full h-full object-contain grayscale" />
                         ) : (
-                          <Droplets size={20} className="text-black/10" />
+                          <div className="w-1.5 h-1.5 rounded-full bg-black/10" />
                         )}
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="dot-matrix text-[8px] text-black/40 tracking-[0.2em] mb-2 font-bold">BRAND_ID</p>
+                        <p className="dot-matrix text-[8px] text-black/40 tracking-[0.2em] mb-2 font-bold uppercase">Brand</p>
                         <input
                           className="w-full bg-black/5 border-none rounded-xl px-4 py-3 dot-matrix text-xs text-black"
                           value={brand}
@@ -193,7 +190,7 @@ export default function AddFragranceModal({ open, type, onClose, onAdd, currency
                         />
                       </div>
                       <div>
-                        <p className="dot-matrix text-[8px] text-black/40 tracking-[0.2em] mb-2 font-bold">NAME_ID</p>
+                        <p className="dot-matrix text-[8px] text-black/40 tracking-[0.2em] mb-2 font-bold uppercase">Name</p>
                         <input
                           className="w-full bg-black/5 border-none rounded-xl px-4 py-3 dot-matrix text-xs text-black"
                           value={name}
@@ -204,7 +201,7 @@ export default function AddFragranceModal({ open, type, onClose, onAdd, currency
 
                     {/* Accords */}
                     <div>
-                      <p className="dot-matrix text-[8px] text-black/40 tracking-[0.2em] mb-3 font-bold">MOLECULAR_ACCORDS</p>
+                      <p className="dot-matrix text-[8px] text-black/40 tracking-[0.2em] mb-3 font-bold uppercase">Scent Profile</p>
                       <div className="flex flex-wrap gap-2">
                         {accords.map(accord => (
                           <span
@@ -232,9 +229,9 @@ export default function AddFragranceModal({ open, type, onClose, onAdd, currency
                     {/* Submit */}
                     <button
                       onClick={handleSubmit}
-                      className={`w-full py-5 rounded-xl dot-matrix text-[11px] tracking-[0.4em] font-bold transition-all shadow-lg text-white ${isLove ? 'bg-black hover:bg-green-600' : 'bg-black hover:bg-red-600'}`}
+                      className={`w-full py-5 rounded-xl dot-matrix text-[11px] tracking-[0.4em] font-bold transition-all shadow-lg text-white uppercase ${isLove ? 'bg-black hover:bg-green-600' : 'bg-black hover:bg-red-600'}`}
                     >
-                      COMMIT_TO_VAULT
+                      Add_To_Collection
                     </button>
                   </motion.div>
                 ) : !searching && (
@@ -244,10 +241,10 @@ export default function AddFragranceModal({ open, type, onClose, onAdd, currency
                     className="py-12 flex flex-col items-center justify-center border border-dashed border-black/10 rounded-xl"
                   >
                     <div className="w-12 h-12 rounded-full bg-black/5 flex items-center justify-center mb-4">
-                      <Search size={20} className="text-black/10" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-black/10" />
                     </div>
-                    <p className="dot-matrix text-black/30 text-[9px] tracking-[0.2em] font-bold">
-                      AWAITING_DATA_INPUT
+                    <p className="dot-matrix text-black/30 text-[9px] tracking-[0.2em] font-bold uppercase">
+                      Enter a name above
                     </p>
                   </motion.div>
                 )}

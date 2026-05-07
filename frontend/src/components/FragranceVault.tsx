@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Heart, Frown } from 'lucide-react';
 import type { Fragrance, UserProfile } from '../types';
 import FragranceCard from './FragranceCard';
 import AddFragranceModal from './AddFragranceModal';
@@ -39,13 +38,13 @@ export default function FragranceVault({ profile, onUpdate, currency }: Props) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
       >
-        <h2 className="dot-matrix text-4xl md:text-5xl font-bold text-black tracking-tight red-dot">
-          Molecular_Vault
+        <h2 className="dot-matrix text-4xl md:text-5xl font-bold text-black tracking-tight uppercase">
+          Your_Collection
         </h2>
         <div className="flex items-center gap-4">
           <div className="h-px w-8 bg-black/10" />
-          <p className="text-black/40 dot-matrix text-[10px] tracking-[0.4em] font-bold">
-            USER_PREFERENCE_DATA
+          <p className="text-black/60 dot-matrix text-[10px] tracking-[0.4em] font-bold uppercase">
+            Curated Scent Preferences
           </p>
           <div className="h-px w-8 bg-black/10" />
         </div>
@@ -56,23 +55,20 @@ export default function FragranceVault({ profile, onUpdate, currency }: Props) {
         <div className="nothing-glass p-8 border-black/5 shadow-[0_12px_40px_rgba(0,0,0,0.02)]">
           <div className="flex items-center justify-between mb-10">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-md bg-green-500/5 flex items-center justify-center">
-                <Heart size={18} className="text-green-600" />
-              </div>
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
               <div>
-                <span className="block dot-matrix text-[10px] font-bold tracking-widest text-black/40">
-                  POSITIVE_PROFILE
+                <span className="block dot-matrix text-[10px] font-bold tracking-widest text-black/40 uppercase">
+                  Love_List
                 </span>
-                <span className="dot-matrix text-xs font-bold text-black">
-                  {profile.loved.length} ENTRIES
+                <span className="dot-matrix text-xs font-bold text-black uppercase">
+                  {profile.loved.length} Entries
                 </span>
               </div>
             </div>
             <button
               onClick={() => setModal('love')}
-              className="nothing-glass px-5 py-2.5 flex items-center gap-2 dot-matrix text-[11px] font-bold tracking-[0.2em] hover:bg-black hover:text-white transition-all border-black/10"
+              className="px-5 py-2.5 flex items-center gap-2 dot-matrix text-[11px] font-bold tracking-[0.2em] bg-white/80 backdrop-blur-xl border border-black/10 rounded-xl hover:bg-black hover:text-white transition-all uppercase"
             >
-              <Plus size={14} />
               ADD_NEW
             </button>
           </div>
@@ -103,23 +99,20 @@ export default function FragranceVault({ profile, onUpdate, currency }: Props) {
         <div className="nothing-glass p-8 border-black/5 shadow-[0_12px_40px_rgba(0,0,0,0.02)]">
           <div className="flex items-center justify-between mb-10">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-md bg-red-500/5 flex items-center justify-center">
-                <Frown size={18} className="text-red-600" />
-              </div>
+              <div className="w-1.5 h-1.5 rounded-full bg-red-600" />
               <div>
-                <span className="block dot-matrix text-[10px] font-bold tracking-widest text-black/40">
-                  NEGATIVE_PROFILE
+                <span className="block dot-matrix text-[10px] font-bold tracking-widest text-black/40 uppercase">
+                  Avoid_List
                 </span>
-                <span className="dot-matrix text-xs font-bold text-black">
-                  {profile.hated.length} ENTRIES
+                <span className="dot-matrix text-xs font-bold text-black uppercase">
+                  {profile.hated.length} Entries
                 </span>
               </div>
             </div>
             <button
               onClick={() => setModal('hate')}
-              className="nothing-glass px-5 py-2.5 flex items-center gap-2 dot-matrix text-[11px] font-bold tracking-[0.2em] hover:bg-black hover:text-white transition-all border-black/10"
+              className="px-5 py-2.5 flex items-center gap-2 dot-matrix text-[11px] font-bold tracking-[0.2em] bg-white/80 backdrop-blur-xl border border-black/10 rounded-xl hover:bg-black hover:text-white transition-all uppercase"
             >
-              <Plus size={14} />
               ADD_NEW
             </button>
           </div>
@@ -181,11 +174,11 @@ function EmptyShelf({
       className="w-full h-44 nothing-glass border-dashed border-black/10 flex flex-col items-center justify-center gap-4 transition-all hover:bg-black/[0.02] group"
     >
       <div 
-        className={`w-12 h-12 rounded-lg flex items-center justify-center transition-transform group-hover:scale-110 ${color === 'green' ? 'bg-green-500/10' : 'bg-red-500/10'}`}
+        className={`w-12 h-12 rounded-lg flex items-center justify-center transition-transform group-hover:scale-110 border border-dashed ${color === 'green' ? 'bg-green-500/5 border-green-500/20' : 'bg-red-500/5 border-red-500/20'}`}
       >
-        <Plus size={20} className={color === 'green' ? 'text-green-600' : 'text-red-600'} />
+        <div className={`w-1.5 h-1.5 rounded-full ${color === 'green' ? 'bg-green-500' : 'bg-red-500'}`} />
       </div>
-      <span className="dot-matrix text-[10px] font-bold tracking-[0.2em] text-black/40 group-hover:text-black">
+      <span className="dot-matrix text-[10px] font-bold tracking-[0.2em] text-black/40 group-hover:text-black uppercase">
         {label}
       </span>
     </button>

@@ -1,6 +1,20 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@300;400;500;600&display=swap');
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'Sora';
+  src: url('/fonts/sora.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Rona';
+  src: url('/fonts/rona.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 :root {
   --nothing-black: #000000;
   --nothing-white: #FFFFFF;
@@ -29,6 +43,28 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Lenis Smooth Scroll */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
 /* Scrollbar - Nothing OS Style */
 ::-webkit-scrollbar {
   width: 4px;
@@ -49,17 +85,26 @@ body {
   text-transform: uppercase;
 }
 
+.font-sora {
+  font-family: 'Sora', sans-serif;
+}
+
+.font-rona {
+  font-family: 'Rona', sans-serif;
+}
+
 /* Nothing OS Glassmorphism */
 .nothing-glass {
-  background: var(--glass-white);
+  background-color: var(--glass-white);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
 }
 
 .nothing-glass-dark {
-  background: var(--glass-black);
+  background-color: var(--glass-black);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -87,6 +132,6 @@ button:focus {
   background-color: var(--nothing-red);
   border-radius: 50%;
   margin-left: 4px;
-  vertical-align: middle;
+  vertical-align: -1px;
 }
 

@@ -1,5 +1,4 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
 import type { Fragrance } from '../types';
 
 interface Props {
@@ -24,9 +23,9 @@ export default function FragranceCard({ fragrance, type, onRemove }: Props) {
         {/* Remove button */}
         <button
           onClick={() => onRemove(fragrance.id)}
-          className="absolute top-3 right-3 w-7 h-7 rounded-lg nothing-glass flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-black hover:text-white z-20"
+          className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all z-20 dot-matrix text-[8px] font-bold text-black/20 hover:text-red-500 uppercase"
         >
-          <X size={12} />
+          Remove
         </button>
 
         {/* Content Layout */}
@@ -34,7 +33,7 @@ export default function FragranceCard({ fragrance, type, onRemove }: Props) {
           <div className="flex items-center gap-2 mb-3">
             <div className={`w-1 h-3 rounded-full ${isLove ? 'bg-green-500' : 'bg-red-500'}`} />
             <span className="dot-matrix text-[8px] font-bold tracking-[0.3em] text-black/30 uppercase">
-              {isLove ? 'AFFINITY_POS' : 'AFFINITY_NEG'}
+              {isLove ? 'Love' : 'Avoid'}
             </span>
           </div>
 
@@ -62,8 +61,8 @@ export default function FragranceCard({ fragrance, type, onRemove }: Props) {
           
           {fragrance.price && (
             <div className="pt-4 mt-2 border-t border-black/5 flex justify-between items-center">
-              <span className="dot-matrix text-[8px] font-bold tracking-[0.2em] text-black/20 italic">
-                PRC_VAL
+              <span className="dot-matrix text-[8px] font-bold tracking-[0.2em] text-black/20 italic uppercase">
+                Retail
               </span>
               <span className="dot-matrix text-[9px] font-bold tracking-[0.1em] text-black/60">
                 {fragrance.currency || 'USD'} {fragrance.price}

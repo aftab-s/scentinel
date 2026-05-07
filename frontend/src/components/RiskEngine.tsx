@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Info, CheckCircle, AlertTriangle, XCircle, Loader2, Sparkles, Droplets } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import type { Fragrance, UserProfile, RiskResult } from '../types';
 import { calculateRisk, searchFragrance } from '../api';
 import RiskGauge from './RiskGauge';
@@ -70,24 +70,19 @@ export default function RiskEngine({ profile, currency }: Props) {
     }
   };
 
-  const getVerdictIcon = (score: number) => {
-    if (score >= 80) return <CheckCircle size={20} className="text-green-500" />;
-    if (score >= 50) return <AlertTriangle size={20} className="text-yellow-500" />;
-    return <XCircle size={20} className="text-red-500" />;
-  };
 
   return (
     <section id="risk-engine" className="px-4 md:px-8 max-w-7xl mx-auto mb-32 relative z-10">
       <div className="flex flex-col items-center mb-16 text-center">
-        <h2 className="dot-matrix text-4xl md:text-5xl font-bold text-black mb-4 red-dot">
-          Analysis_Engine
+        <h2 className="dot-matrix text-4xl md:text-5xl font-bold text-black mb-4 uppercase">
+          Match_Engine
         </h2>
         <div className="flex items-center gap-4">
-          <div className="h-px w-8 bg-black/10" />
-          <p className="text-black/40 dot-matrix text-[10px] tracking-[0.4em] font-bold">
-            COMPATIBILITY_ALGORITHM_V2
+          <div className="h-px w-8 bg-black/20" />
+          <p className="text-black/80 dot-matrix text-[10px] tracking-[0.4em] font-bold uppercase">
+            Blind Buy Intelligence
           </p>
-          <div className="h-px w-8 bg-black/10" />
+          <div className="h-px w-8 bg-black/20" />
         </div>
       </div>
 
@@ -96,20 +91,20 @@ export default function RiskEngine({ profile, currency }: Props) {
         {/* Left Column: Search & Details */}
         <div className="lg:col-span-5 flex flex-col gap-8">
           <motion.div
-            className="nothing-glass p-8 border-black/5 shadow-[0_12px_40px_rgba(0,0,0,0.02)]"
+            className="nothing-glass p-8 border-black/10 shadow-[0_20px_50px_rgba(0,0,0,0.05)]"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
             <div className="flex items-center gap-3 mb-8">
-              <Search size={16} className="text-black/40" />
-              <p className="dot-matrix text-[10px] tracking-[0.2em] font-bold text-black/40">DATA_INPUT_FIELD</p>
+              <div className="w-1.5 h-1.5 rounded-full bg-red-600" />
+              <p className="dot-matrix text-[10px] tracking-[0.2em] font-bold text-black uppercase">Selection</p>
             </div>
 
             <div className="flex flex-col gap-4 mb-8">
               <input
-                className="w-full bg-black/5 border-none rounded-xl px-5 py-4 dot-matrix text-sm text-black placeholder-black/20 focus:ring-2 focus:ring-black/5 transition-all"
-                placeholder="Fragrance_Search_Key..."
+                className="w-full bg-black/[0.03] border border-black/10 rounded-xl px-5 py-4 dot-matrix text-sm text-black placeholder-black/40 focus:ring-2 focus:ring-black/10 transition-all outline-none"
+                placeholder="Search fragrance name..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleSearch()}
@@ -117,9 +112,9 @@ export default function RiskEngine({ profile, currency }: Props) {
               <button
                 onClick={handleSearch}
                 disabled={!searchQuery.trim() || searching}
-                className="w-full py-4 rounded-xl dot-matrix text-[10px] tracking-[0.3em] font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2 bg-black text-white hover:bg-red-600"
+                className="w-full py-4 rounded-xl dot-matrix text-[10px] tracking-[0.3em] font-bold transition-all flex items-center justify-center gap-2 bg-black text-white hover:bg-red-600 active:scale-[0.98] shadow-md disabled:bg-black/40 disabled:text-white/40 disabled:shadow-none disabled:cursor-not-allowed uppercase"
               >
-                {searching ? <Loader2 size={16} className="animate-spin" /> : 'INITIALIZE_SEARCH'}
+                {searching ? <Loader2 size={16} className="animate-spin" /> : 'Analyze'}
               </button>
             </div>
 
@@ -156,27 +151,27 @@ export default function RiskEngine({ profile, currency }: Props) {
                     <div className="py-4 space-y-6">
                       <div className="flex items-center gap-2 justify-center">
                         <div className="h-px w-4 bg-black/10" />
-                        <p className="dot-matrix text-[8px] text-black/40 tracking-[0.3em] font-bold">OLFACTORY_STRUCTURE</p>
+                        <p className="dot-matrix text-[8px] text-black/40 tracking-[0.3em] font-bold uppercase">Scent_Profile</p>
                         <div className="h-px w-4 bg-black/10" />
                       </div>
                       
                       {target.notes.top?.length > 0 && (
                         <div className="text-center">
-                          <p className="dot-matrix text-[8px] text-black/20 font-bold tracking-widest mb-1 uppercase">TOP_NOTES</p>
+                          <p className="dot-matrix text-[8px] text-black/20 font-bold tracking-widest mb-1 uppercase">Opening</p>
                           <p className="dot-matrix text-xs text-black/60">{target.notes.top.join(' · ')}</p>
                         </div>
                       )}
                       
                       {target.notes.middle?.length > 0 && (
                         <div className="text-center">
-                          <p className="dot-matrix text-[8px] text-black/20 font-bold tracking-widest mb-1 uppercase">HEART_NOTES</p>
+                          <p className="dot-matrix text-[8px] text-black/20 font-bold tracking-widest mb-1 uppercase">Heart</p>
                           <p className="dot-matrix text-xs text-black/60">{target.notes.middle.join(' · ')}</p>
                         </div>
                       )}
                       
                       {target.notes.base?.length > 0 && (
                         <div className="text-center">
-                          <p className="dot-matrix text-[8px] text-black/20 font-bold tracking-widest mb-1 uppercase">BASE_NOTES</p>
+                          <p className="dot-matrix text-[8px] text-black/20 font-bold tracking-widest mb-1 uppercase">Base</p>
                           <p className="dot-matrix text-xs text-black/60">{target.notes.base.join(' · ')}</p>
                         </div>
                       )}
@@ -184,10 +179,10 @@ export default function RiskEngine({ profile, currency }: Props) {
                   )}
 
                   <div className="pt-8 border-t border-black/5">
-                    <p className="dot-matrix text-[9px] text-black/40 tracking-[0.2em] mb-3 font-bold uppercase">VALUATION_INDEX ({currency})</p>
+                    <p className="dot-matrix text-[9px] text-black/40 tracking-[0.2em] mb-3 font-bold uppercase">Price Index ({currency})</p>
                     <input
                       className="w-full bg-black/5 border-none rounded-xl px-5 py-4 dot-matrix text-sm text-black placeholder-black/20 focus:ring-2 focus:ring-black/5 transition-all mb-6"
-                      placeholder="Retail_Price..."
+                      placeholder="Retail Price..."
                       type="number"
                       value={targetPrice}
                       onChange={e => setTargetPrice(e.target.value)}
@@ -205,7 +200,7 @@ export default function RiskEngine({ profile, currency }: Props) {
                           <Loader2 size={16} className="animate-spin" /> RUNNING_ANALYSIS...
                         </>
                       ) : (
-                        'ASSESS_ACQUISITION_RISK'
+                        'Analyze Compatibility'
                       )}
                     </button>
                   </div>
@@ -229,10 +224,10 @@ export default function RiskEngine({ profile, currency }: Props) {
               >
                 <div className="flex items-center justify-between mb-12 pb-6 border-b border-black/5">
                   <div className="flex items-center gap-3">
-                    <Droplets size={16} className="text-black/40" />
-                    <p className="dot-matrix text-[10px] tracking-[0.3em] font-bold text-black/40 uppercase">COMPATIBILITY_REPORT</p>
+                    <div className="w-1.5 h-1.5 rounded-full bg-red-600" />
+                    <p className="dot-matrix text-[10px] tracking-[0.3em] font-bold text-black/40 uppercase">Compatibility Assessment</p>
                   </div>
-                  {result.score >= 80 && <span className="dot-matrix text-[8px] bg-green-500 text-white px-3 py-1 rounded-full tracking-[0.2em] font-bold uppercase">OPTIMAL_BUY</span>}
+                  {result.score >= 80 && <span className="dot-matrix text-[8px] bg-red-600 text-white px-3 py-1 rounded-full tracking-[0.2em] font-bold uppercase">Perfect Match</span>}
                 </div>
 
                 <div className="flex flex-col md:flex-row items-center gap-12 mb-12">
@@ -245,9 +240,9 @@ export default function RiskEngine({ profile, currency }: Props) {
                     transition={{ delay: 0.8 }}
                   >
                     <div className="flex items-center justify-center md:justify-start gap-3 mb-4">
-                      {getVerdictIcon(result.score)}
+                      <div className={`w-2 h-2 rounded-full ${result.score >= 80 ? 'bg-green-500' : result.score >= 50 ? 'bg-yellow-500' : 'bg-red-500'}`} />
                       <span className="dot-matrix text-2xl font-bold text-black uppercase">
-                        {result.score >= 80 ? 'Approved' : result.score >= 50 ? 'Caution' : 'Rejected'}
+                        {result.score >= 80 ? 'Recommended' : result.score >= 50 ? 'Cautious' : 'Not for you'}
                       </span>
                     </div>
                     <p className="dot-matrix text-sm text-black/60 italic leading-relaxed">
@@ -264,9 +259,9 @@ export default function RiskEngine({ profile, currency }: Props) {
                     transition={{ delay: 1 }}
                   >
                     <div className="flex items-start gap-4">
-                      <Sparkles size={18} className="text-red-500 mt-0.5 flex-shrink-0" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 flex-shrink-0" />
                       <div>
-                        <p className="dot-matrix text-[9px] text-white/40 tracking-[0.3em] font-bold mb-3 uppercase">AI_NEURAL_INSIGHT</p>
+                        <p className="dot-matrix text-[9px] text-white/40 tracking-[0.3em] font-bold mb-3 uppercase">Scentinel Insight</p>
                         <p className="dot-matrix text-xs text-white/80 leading-relaxed">
                           {result.ai_insight}
                         </p>
@@ -295,8 +290,8 @@ export default function RiskEngine({ profile, currency }: Props) {
                       className="flex flex-col"
                     >
                       <div className="flex items-center gap-3 mb-8 justify-center md:justify-start">
-                        <Info size={14} className="text-black/40" />
-                        <p className="dot-matrix text-[9px] tracking-[0.2em] font-bold text-black/40 uppercase">Economic_Alternatives</p>
+                        <div className="w-1.5 h-1.5 rounded-full bg-red-600" />
+                        <p className="dot-matrix text-[9px] tracking-[0.2em] font-bold text-black/40 uppercase">Recommended Alternatives</p>
                       </div>
                       
                       <div className="space-y-4">
@@ -345,16 +340,11 @@ export default function RiskEngine({ profile, currency }: Props) {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
               >
-                <div className="w-20 h-20 rounded-xl bg-black/5 flex items-center justify-center mb-8 relative">
-                  <Search size={32} className="text-black/10" />
-                  <motion.div 
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
-                    className="absolute inset-0 border border-dashed border-black/10 rounded-xl"
-                  />
+                <div className="w-20 h-20 rounded-xl bg-black/[0.05] border border-black/10 flex items-center justify-center mb-8 relative">
+                  <div className="absolute inset-0 border border-dashed border-black/20 rounded-xl" />
                 </div>
-                <p className="dot-matrix text-black/40 text-[10px] tracking-[0.2em] font-bold text-center max-w-xs leading-relaxed uppercase">
-                  Awaiting_molecular_data_input_to_generate_assessment
+                <p className="dot-matrix text-black/60 text-[10px] tracking-[0.2em] font-bold text-center max-w-xs leading-relaxed uppercase">
+                  Select a fragrance to begin analysis
                 </p>
               </motion.div>
             )}

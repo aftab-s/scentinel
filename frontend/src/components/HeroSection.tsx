@@ -1,9 +1,8 @@
 import { motion } from 'framer-motion';
-import { Droplets, Sparkles } from 'lucide-react';
 
 export default function HeroSection() {
   return (
-    <section className="relative w-full max-w-7xl mx-auto px-4 md:px-8 py-16 md:py-32 flex flex-col md:flex-row items-center justify-between overflow-hidden">
+    <section className="relative w-full max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-16 flex flex-col md:flex-row items-center justify-between overflow-hidden">
       
 
       {/* Left Column: Technical Messaging */}
@@ -15,18 +14,15 @@ export default function HeroSection() {
           className="flex flex-col"
         >
           <div className="flex items-center gap-2 mb-4">
-             <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-             <span className="dot-matrix text-[10px] tracking-[0.4em] font-bold text-black/40">SENSORY_UNIT_CONNECTED</span>
+             <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
+             <span className="dot-matrix text-[10px] tracking-[0.4em] font-bold text-black/60 uppercase">Blind Buy Intelligence</span>
           </div>
-          <span className="dot-matrix text-[12vw] md:text-[6rem] leading-none font-bold tracking-tighter">
-            Botanical
+          <span className="font-sora text-[12vw] md:text-[6.5rem] leading-none font-medium tracking-tighter">
+            Scentinel<span className="text-red-600">.</span>
           </span>
-          <span className="dot-matrix text-[12vw] md:text-[6rem] leading-none font-bold tracking-tighter text-black/20">
-            Precision
-          </span>
-          <div className="flex items-center gap-4 mt-6">
-            <div className="h-px w-16 bg-black" />
-            <span className="dot-matrix text-xs tracking-[0.4em] font-bold">SCENT_INTEL_SYSTEM</span>
+          <div className="flex items-center gap-4 mt-8">
+            <div className="h-px w-16 bg-black/20" />
+            <span className="dot-matrix text-[10px] tracking-[0.4em] font-bold text-black/60 uppercase">The Science of Selection</span>
           </div>
         </motion.div>
         
@@ -34,32 +30,11 @@ export default function HeroSection() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8, duration: 1 }}
-          className="mt-12 text-black/60 text-sm md:text-base max-w-sm font-light leading-relaxed"
+          className="mt-10 text-black/60 text-base md:text-lg max-w-sm font-light leading-relaxed"
         >
-          An algorithmic approach to olfactory harmony. Scentinel synthesizes molecular data from botanical gardens and luxury perfumery to predict your next signature scent with crystalline clarity.
+          Predict your next favorite fragrance before the first spray. A sophisticated analysis tool for perfume enthusiasts who want to discover their signature scent with confidence.
         </motion.p>
 
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.2 }}
-          className="mt-12 flex items-center gap-8"
-        >
-          <button className="px-10 py-5 bg-black text-white dot-matrix text-[11px] tracking-[0.4em] font-bold rounded-xl hover:bg-red-600 transition-all shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)]">
-            INITIALIZE_VAULT
-          </button>
-          <div className="flex flex-col">
-            <span className="dot-matrix text-[9px] font-bold tracking-widest text-black/30 mb-1">ACTIVE_RECEPTORS</span>
-            <div className="flex -space-x-2">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="w-8 h-8 rounded-lg border-2 border-white bg-black/5 flex items-center justify-center overflow-hidden">
-                  <div className={`w-4 h-4 rounded-full ${i % 2 === 0 ? 'bg-leaf-green/20' : 'bg-petal-pink/20'}`} />
-                </div>
-              ))}
-              <div className="pl-4 dot-matrix text-[8px] font-bold self-center tracking-widest text-black/40">12.8k_SYNCED</div>
-            </div>
-          </div>
-        </motion.div>
       </div>
 
       {/* Right Column: Organic Widget */}
@@ -68,7 +43,7 @@ export default function HeroSection() {
           initial={{ opacity: 0, scale: 0.9, filter: 'blur(20px)' }}
           animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
           transition={{ duration: 1.5, ease: 'easeOut' }}
-          className="relative aspect-[4/5] flex items-center justify-center group overflow-hidden"
+          className="relative aspect-square flex items-center justify-center group overflow-hidden"
         >
           {/* Main Visual */}
           <div className="absolute inset-0 rounded-xl overflow-hidden bg-black/5">
@@ -86,9 +61,9 @@ export default function HeroSection() {
             OOM_DATA_SCAN_01
           </div>
           
-          <div className="absolute bottom-8 right-8 flex items-center gap-3 bg-white/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/30">
-             <div className="w-1.5 h-1.5 rounded-full bg-leaf-green" />
-             <span className="dot-matrix text-[8px] font-bold tracking-widest text-black/60">BOTANICAL_LOCK_READY</span>
+          <div className="absolute bottom-8 right-8 flex items-center gap-3 bg-white/40 backdrop-blur-md px-5 py-2.5 rounded-xl border border-black/5 shadow-sm">
+             <div className="w-1.5 h-1.5 rounded-full bg-red-600" />
+             <span className="dot-matrix text-[8px] font-bold tracking-widest text-black/80 uppercase">Discovery_Engine_Ready</span>
           </div>
 
           {/* Scent Diffusion Trail */}

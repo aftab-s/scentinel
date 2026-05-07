@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { ChevronDown } from 'lucide-react';
 import { getCurrencies } from '../api';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -22,11 +21,10 @@ export default function CurrencySelector({ currency, onChange }: Props) {
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-3 px-5 py-2.5 rounded-xl nothing-glass border-black/5 hover:bg-black hover:text-white transition-all group"
+        className="flex items-baseline gap-2 md:gap-3 px-3 md:px-5 py-2 md:py-2.5 bg-white/80 backdrop-blur-xl border border-black/10 rounded-xl hover:bg-black hover:text-white transition-all group"
       >
-        <div className="w-1.5 h-1.5 rounded-full bg-red-500 group-hover:bg-white transition-colors" />
+        <div className="w-1.5 h-1.5 rounded-full bg-red-500 group-hover:bg-white transition-colors translate-y-[1px]" />
         <span className="dot-matrix text-[10px] font-bold tracking-[0.2em]">{currency}</span>
-        <ChevronDown size={12} className="opacity-30 group-hover:opacity-100" />
       </button>
 
       <AnimatePresence>
@@ -43,8 +41,8 @@ export default function CurrencySelector({ currency, onChange }: Props) {
               exit={{ opacity: 0, scale: 0.95, filter: 'blur(10px)' }}
               transition={{ duration: 0.2 }}
             >
-              <div className="dot-matrix text-[8px] font-bold text-black/20 tracking-[0.3em] px-3 py-2 mb-1 border-b border-black/5">
-                SELECT_VALUTA
+              <div className="dot-matrix text-[8px] font-bold text-black/20 tracking-[0.3em] px-3 py-2 mb-1 border-b border-black/5 uppercase">
+                Select Currency
               </div>
               {currencies.map(c => (
                 <button
