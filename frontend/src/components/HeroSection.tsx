@@ -2,58 +2,90 @@ import { motion } from 'framer-motion';
 
 export default function HeroSection() {
   return (
-    <section className="relative w-full max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-24 flex flex-col md:flex-row items-center justify-between">
+    <section className="relative w-full max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-16 flex flex-col md:flex-row items-center justify-between overflow-hidden">
       
-      {/* Left Typography Column */}
+
+      {/* Left Column: Technical Messaging */}
       <div className="w-full md:w-1/2 flex flex-col justify-center relative z-10">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
-          className="flex flex-col text-[14vw] md:text-[8rem] lg:text-[9rem] leading-[0.85] text-[#4A3B32] serif tracking-tighter uppercase"
+          initial={{ opacity: 0, x: -50, filter: 'blur(10px)' }}
+          animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+          transition={{ duration: 1, ease: 'easeOut' }}
+          className="flex flex-col"
         >
-          <span className="ml-0 md:ml-4">Blind</span>
-          <span className="ml-12 md:ml-24">Buy</span>
-          <span className="ml-4 md:ml-8 text-[#D2A795]">Intel.</span>
+          <div className="flex items-center gap-2 mb-4">
+             <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
+             <span className="dot-matrix text-[10px] tracking-[0.4em] font-bold text-black/60 uppercase">Blind Buy Intelligence</span>
+          </div>
+          <span className="font-sora text-[12vw] md:text-[6.5rem] leading-none font-medium tracking-tighter">
+            Scentinel<span className="text-red-600">.</span>
+          </span>
+          <div className="flex items-center gap-4 mt-8">
+            <div className="h-px w-16 bg-black/20" />
+            <span className="dot-matrix text-[10px] tracking-[0.4em] font-bold text-black/60 uppercase">The Science of Selection</span>
+          </div>
         </motion.div>
         
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.6, duration: 0.8 }}
-          className="mt-8 md:mt-12 text-[#4A3B32] text-sm md:text-base max-w-sm sans-serif leading-relaxed"
+          transition={{ delay: 0.8, duration: 1 }}
+          className="mt-10 text-black/60 text-base md:text-lg max-w-sm font-light leading-relaxed"
         >
-          Scentinel is a refined risk engine where the delicate art of perfumery meets data-driven intelligence. Calculate the risk of your next blind buy and discover curated alternatives that embody elegance.
+          Predict your next favorite fragrance before the first spray. A sophisticated analysis tool for perfume enthusiasts who want to discover their signature scent with confidence.
         </motion.p>
+
       </div>
 
-      {/* Right Image Column */}
-      <div className="w-full md:w-1/2 mt-16 md:mt-0 relative flex justify-center md:justify-end">
+      {/* Right Column: Organic Widget */}
+      <div className="w-full md:w-5/12 mt-20 md:mt-0 relative">
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1, ease: 'easeOut' }}
-          className="relative w-full max-w-lg aspect-[4/5] md:aspect-auto md:h-[600px]"
+          initial={{ opacity: 0, scale: 0.9, filter: 'blur(20px)' }}
+          animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+          transition={{ duration: 1.5, ease: 'easeOut' }}
+          className="relative aspect-square flex items-center justify-center group overflow-hidden"
         >
-          {/* Aesthetic Arch Background */}
-          <div className="absolute inset-0 bg-[#F4EFE6] rounded-t-full shadow-sm overflow-hidden flex items-center justify-center">
-            <img 
-              src="/hero-image.png" 
-              alt="Luxury Perfume" 
-              className="w-full h-full object-cover mix-blend-multiply opacity-90"
+          {/* Main Visual */}
+          <div className="absolute inset-0 rounded-xl overflow-hidden bg-black/5">
+            <motion.img 
+              src="/hero-botanical.png" 
+              alt="Organic Scent Intelligence" 
+              className="w-full h-full object-cover grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-1000 scale-110 group-hover:scale-100"
             />
+            {/* Glass Overlays for depth */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-nothing-white/20 to-transparent pointer-events-none" />
           </div>
           
-          {/* Floating badge */}
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.8, duration: 0.8 }}
-            className="absolute bottom-12 -left-4 md:-left-12 glass rounded-full px-6 py-3 flex items-center gap-3"
-          >
-            <div className="w-2 h-2 rounded-full bg-[#D2A795] animate-pulse" />
-            <span className="text-xs uppercase tracking-widest font-semibold text-[#4A3B32]">Risk Engine V2</span>
-          </motion.div>
+          {/* UI Metadata Overlays */}
+          <div className="absolute top-8 left-8 dot-matrix text-[10px] font-bold tracking-[0.4em] text-black/40 mix-blend-difference">
+            OOM_DATA_SCAN_01
+          </div>
+          
+          <div className="absolute bottom-8 right-8 flex items-center gap-3 bg-white/40 backdrop-blur-md px-5 py-2.5 rounded-xl border border-black/5 shadow-sm">
+             <div className="w-1.5 h-1.5 rounded-full bg-red-600" />
+             <span className="dot-matrix text-[8px] font-bold tracking-widest text-black/80 uppercase">Discovery_Engine_Ready</span>
+          </div>
+
+          {/* Scent Diffusion Trail */}
+          <div className="absolute -left-12 bottom-1/4 flex flex-col gap-3">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <motion.div 
+                key={i}
+                animate={{ 
+                  x: [0, 20, 0],
+                  opacity: [0, 0.4, 0], 
+                  scale: [0.5, 1.2, 0.5] 
+                }}
+                transition={{ 
+                  duration: 3, 
+                  repeat: Infinity, 
+                  delay: i * 0.4,
+                  ease: 'easeInOut' 
+                }}
+                className={`w-${i % 2 === 0 ? '2' : '3'} h-${i % 2 === 0 ? '2' : '3'} bg-${i % 2 === 0 ? 'leaf-green' : 'petal-pink'} rounded-full blur-[1px]`}
+              />
+            ))}
+          </div>
         </motion.div>
       </div>
 

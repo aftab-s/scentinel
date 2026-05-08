@@ -14,7 +14,7 @@ interface Props {
 
 export default function AccordRadar({ breakdown }: Props) {
   const data = breakdown.map(b => ({
-    accord: b.accord,
+    accord: b.accord.toUpperCase(),
     Love: b.loveScore,
     Hate: b.hateScore,
     Target: b.targetHas ? Math.max(b.loveScore, 1) : 0,
@@ -23,62 +23,67 @@ export default function AccordRadar({ breakdown }: Props) {
   if (data.length === 0) return null;
 
   return (
-    <div className="w-full h-64">
+    <div className="w-full h-72">
       <ResponsiveContainer width="100%" height="100%">
-        <RadarChart data={data} margin={{ top: 10, right: 20, bottom: 10, left: 20 }}>
-          <PolarGrid stroke="rgba(232, 207, 193, 0.4)" />
+        <RadarChart data={data} margin={{ top: 20, right: 30, bottom: 20, left: 30 }}>
+          <PolarGrid stroke="rgba(0,0,0,0.05)" strokeDasharray="3 3" />
           <PolarAngleAxis
             dataKey="accord"
-            tick={{ fill: '#4A3B32', fontSize: 10, fontFamily: 'Inter' }}
+            tick={{ fill: 'rgba(0,0,0,0.3)', fontSize: 7, fontFamily: 'Space Mono', fontWeight: 'bold' }}
           />
           <Radar
-            name="Loved"
+            name="MATCH_POS"
             dataKey="Love"
-            stroke="#22c55e"
-            fill="#22c55e"
-            fillOpacity={0.15}
-            strokeWidth={1.5}
+            stroke="black"
+            fill="black"
+            fillOpacity={0.03}
+            strokeWidth={1}
           />
           <Radar
-            name="Hated"
+            name="MATCH_NEG"
             dataKey="Hate"
-            stroke="#991b1b"
-            fill="#991b1b"
-            fillOpacity={0.1}
-            strokeWidth={1.5}
+            stroke="#ef4444"
+            fill="#ef4444"
+            fillOpacity={0.03}
+            strokeWidth={1}
           />
           <Radar
-            name="Target"
+            name="TARGET_VAL"
             dataKey="Target"
-            stroke="#D2A795"
-            fill="#E8CFC1"
-            fillOpacity={0.3}
+            stroke="black"
+            fill="black"
+            fillOpacity={0.1}
             strokeWidth={2}
-            strokeDasharray="4 2"
+            strokeDasharray="4 4"
           />
           <Tooltip
             contentStyle={{
-              background: 'rgba(253, 251, 247, 0.95)',
-              border: '1px solid rgba(232, 207, 193, 0.5)',
-              borderRadius: '12px',
-              fontFamily: 'Inter',
-              fontSize: '11px',
-              color: '#2C241B',
+              background: 'rgba(255, 255, 255, 0.9)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(0,0,0,0.05)',
+              borderRadius: '16px',
+              fontFamily: 'Space Mono',
+              fontSize: '9px',
+              color: '#000',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.05)'
             }}
           />
         </RadarChart>
       </ResponsiveContainer>
 
       {/* Legend */}
-      <div className="flex items-center justify-center gap-5 mt-1">
+      <div className="flex items-center justify-center gap-6 mt-4">
         {[
-          { color: '#22c55e', label: 'Loved' },
-          { color: '#991b1b', label: 'Hated' },
-          { color: '#D2A795', label: 'Target' },
-        ].map(({ color, label }) => (
-          <div key={label} className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-full" style={{ background: color }} />
-            <span className="text-[10px] text-[#4A3B32] sans-serif">{label}</span>
+          { color: 'black', label: 'USER_LOVE', dotted: false },
+          { color: '#ef4444', label: 'USER_HATE', dotted: false },
+          { color: 'black', label: 'TARGET_VAL', dotted: true },
+        ].map(({ color, label, dotted }) => (
+          <div key={label} className="flex items-center gap-2">
+            <div 
+              className={`w-2 h-2 rounded-full ${dotted ? 'border-2 border-black bg-transparent' : ''}`} 
+              style={{ background: dotted ? 'transparent' : color }} 
+            />
+            <span className="dot-matrix text-[8px] font-bold text-black/40 tracking-widest">{label}</span>
           </div>
         ))}
       </div>
