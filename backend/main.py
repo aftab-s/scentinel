@@ -102,6 +102,8 @@ class RiskResponse(BaseModel):
     breakdown: list[AccordScore]
     clones: list[CloneSuggestion] = []  # Changed from single clone to list
     ai_insight: Optional[str] = None
+    ai_risk_breakdown: Optional[str] = None
+    ai_layering_suggestion: Optional[str] = None
 
 class ConvertRequest(BaseModel):
     amount: float
@@ -646,10 +648,15 @@ def search_fallback(query: str) -> FragranceDetails:
 
 # ── AI insight ────────────────────────────────────────────────────────────────
 
-def get_ai_insight(target: Fragrance, profile: UserProfile, score: int) -> Optional[str]:
+def get_ai_insight(target: Fragrance, profile: UserProfile, score: int) -> dict:
     """Generate a personalized blind-buy insight using Groq."""
+    default_response = {
+        "insight": None,
+        "risk_breakdown": None,
+        "layering_suggestion": None
+    }
     if not groq_client:
-        return None
+        return default_response
 
     loved_names = [f"{f.brand} {f.name}" for f in profile.loved[:3]]
     hated_names = [f"{f.brand} {f.name}" for f in profile.hated[:3]]
@@ -661,21 +668,36 @@ Hated: {', '.join(hated_names) if hated_names else 'None specified'}
 
 Target: {target.brand} {target.name}
 Accords: {', '.join(target.accords) if target.accords else 'Unknown'}
-Risk Score: {score}/100
+Match Score: {score}/100 (Note: This is a compatibility score. Higher score means the user is MORE likely to like it. Lower score means higher risk of dislike.)
 
-Write 1-2 sentences of personalized advice about this blind buy. Be concise, sophisticated, and specific. Reference actual notes or accords where relevant. Also include a brief recommendation on the ideal season and occasion to wear it."""
+Respond with ONLY valid JSON (no markdown, no explanation):
+{{
+  "insight": "1-2 sentences of personalized advice about this blind buy.",
+  "risk_breakdown": "2-3 sentences explaining why it's a good or risky match based on notes and the match score.",
+  "layering_suggestion": "Suggest a perfume from their loved list to layer with, or a generic note if they have none."
+}}"""
 
     try:
         response = groq_client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=150,
-            temperature=0.7,
+            max_tokens=500,
+            temperature=0.5,
         )
-        return response.choices[0].message.content.strip()
+        raw = response.choices[0].message.content.strip()
+        if raw.startswith("```"):
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+        data = json.loads(raw.strip())
+        return {
+            "insight": data.get("insight"),
+            "risk_breakdown": data.get("risk_breakdown"),
+            "layering_suggestion": data.get("layering_suggestion")
+        }
     except Exception as e:
         print(f"Groq insight error: {e}")
-        return None
+        return default_response
 
 
 # ── Risk calculation ──────────────────────────────────────────────────────────
@@ -950,9 +972,13 @@ async def calculate_risk(req: RiskRequest):
     clones = await find_budget_clones(req.target_perfume)
 
     # AI insight
-    ai_insight = None
+    ai_data = {
+        "insight": None,
+        "risk_breakdown": None,
+        "layering_suggestion": None
+    }
     if groq_client:
-        ai_insight = await asyncio.to_thread(
+        ai_data = await asyncio.to_thread(
             get_ai_insight, req.target_perfume, req.user_profile, score
         )
 
@@ -961,5 +987,7 @@ async def calculate_risk(req: RiskRequest):
         verdict=verdict,
         breakdown=breakdown,
         clones=clones[:3],  # Ensure exactly 3 clones
-        ai_insight=ai_insight,
+        ai_insight=ai_data.get("insight"),
+        ai_risk_breakdown=ai_data.get("risk_breakdown"),
+        ai_layering_suggestion=ai_data.get("layering_suggestion"),
     )

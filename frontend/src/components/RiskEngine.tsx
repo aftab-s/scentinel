@@ -251,21 +251,49 @@ export default function RiskEngine({ profile, currency }: Props) {
                   </motion.div>
                 </div>
 
-                {result.ai_insight && (
+                {(result.ai_insight || result.ai_risk_breakdown || result.ai_layering_suggestion) && (
                   <motion.div
-                    className="nothing-glass-dark p-6 mb-12"
+                    className="nothing-glass p-6 mb-12 border-black/5 shadow-sm"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 1 }}
                   >
-                    <div className="flex items-start gap-4">
-                      <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 flex-shrink-0" />
-                      <div>
-                        <p className="dot-matrix text-[9px] text-white/40 tracking-[0.3em] font-bold mb-3 uppercase">Scentinel Insight</p>
-                        <p className="dot-matrix text-xs text-white/80 leading-relaxed">
-                          {result.ai_insight}
-                        </p>
-                      </div>
+                    <div className="flex flex-col gap-6">
+                      {result.ai_insight && (
+                        <div className="flex items-start gap-4">
+                          <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 flex-shrink-0" />
+                          <div>
+                            <p className="dot-matrix text-[9px] text-black/40 tracking-[0.3em] font-bold mb-2 uppercase">Scentinel Insight</p>
+                            <p className="text-sm text-black/80 leading-relaxed">
+                              {result.ai_insight}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {result.ai_risk_breakdown && (
+                        <div className="flex items-start gap-4 pt-4 border-t border-black/10">
+                          <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 mt-1.5 flex-shrink-0" />
+                          <div>
+                            <p className="dot-matrix text-[9px] text-black/40 tracking-[0.3em] font-bold mb-2 uppercase">Compatibility Breakdown</p>
+                            <p className="text-sm text-black/80 leading-relaxed">
+                              {result.ai_risk_breakdown}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {result.ai_layering_suggestion && (
+                        <div className="flex items-start gap-4 pt-4 border-t border-black/10">
+                          <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 flex-shrink-0" />
+                          <div>
+                            <p className="dot-matrix text-[9px] text-black/40 tracking-[0.3em] font-bold mb-2 uppercase">Layering Suggestion</p>
+                            <p className="text-sm text-black/80 leading-relaxed">
+                              {result.ai_layering_suggestion}
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 )}

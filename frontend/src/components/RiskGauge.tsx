@@ -91,7 +91,7 @@ export default function RiskGauge({ score }: Props) {
         
         <div className="flex flex-col items-center mt-2">
           <span className="dot-matrix text-[10px] text-black font-bold tracking-[0.3em] uppercase">
-            RISK_PERCENT
+            MATCH_PERCENT
           </span>
           <div className="mt-4 flex gap-1">
             {[1, 2, 3, 4, 5].map(i => (
