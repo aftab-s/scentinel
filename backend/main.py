@@ -889,7 +889,7 @@ async def find_budget_clones(target: Fragrance) -> list[CloneSuggestion]:
 
 # ── Routes ────────────────────────────────────────────────────────────────────
 
-@app.get("/")
+@app.get("/api")
 def root():
     return {
         "status": "ok",
@@ -898,11 +898,11 @@ def root():
         "search_tiers": ["web_search_scrape", "groq_direct", "fallback"],
     }
 
-@app.get("/currencies")
+@app.get("/api/currencies")
 def get_currencies():
     return {"currencies": list(EXCHANGE_RATES.keys()), "rates": EXCHANGE_RATES}
 
-@app.post("/convert")
+@app.post("/api/convert")
 def convert_currency(req: ConvertRequest):
     if req.from_currency not in EXCHANGE_RATES or req.to_currency not in EXCHANGE_RATES:
         raise HTTPException(400, "Invalid currency code")
@@ -910,7 +910,7 @@ def convert_currency(req: ConvertRequest):
     converted = usd * EXCHANGE_RATES[req.to_currency]
     return {"amount": round(converted, 2), "currency": req.to_currency}
 
-@app.post("/search", response_model=FragranceDetails)
+@app.post("/api/search", response_model=FragranceDetails)
 async def search_fragrance(req: SearchRequest):
     """
     Multi-tier fragrance search:
@@ -941,7 +941,7 @@ async def search_fragrance(req: SearchRequest):
     details = search_fallback(req.query)
     return details
 
-@app.post("/calculate-risk", response_model=RiskResponse)
+@app.post("/api/calculate-risk", response_model=RiskResponse)
 async def calculate_risk(req: RiskRequest):
     """Calculate blind buy risk with optional AI insight."""
     score, breakdown = calculate_risk_score(req.target_perfume, req.user_profile)
